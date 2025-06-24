@@ -1,0 +1,10 @@
+<!-- Placeholder para Vision Triste -->
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="45" fill="#6366f1" stroke="#2563eb" stroke-width="4"/>
+  <circle cx="35" cy="40" r="4" fill="#2563eb"/>
+  <circle cx="65" cy="40" r="4" fill="#2563eb"/>
+  <path d="M65 70 Q50 55 35 70" stroke="#2563eb" stroke-width="3" fill="none"/>
+  <path d="M38 35 L38 20" stroke="#3b82f6" stroke-width="2"/>
+  <path d="M62 35 L62 20" stroke="#3b82f6" stroke-width="2"/>
+  <text x="50" y="90" text-anchor="middle" fill="#2563eb" font-size="8">Triste</text>
+</svg>

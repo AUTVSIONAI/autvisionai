@@ -1,0 +1,8 @@
+<!-- Placeholder para logo AutVision PNG -->
+<!-- Esta é uma referência temporária. Substitua pela imagem real do logo da AutVision -->
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="60" rx="8" fill="#2563eb"/>
+  <path d="M20 45L30 15L40 45H20Z" fill="white"/>
+  <circle cx="30" cy="28" r="4" fill="#2563eb"/>
+  <text x="65" y="38" fill="white" font-size="18" font-weight="bold">AutVision AI</text>
+</svg>

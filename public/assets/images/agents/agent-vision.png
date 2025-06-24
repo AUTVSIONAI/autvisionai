@@ -1,0 +1,9 @@
+<!-- Placeholder para Agent Vision -->
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="120" rx="20" fill="#2563eb"/>
+  <circle cx="60" cy="50" r="25" fill="white"/>
+  <circle cx="50" cy="45" r="3" fill="#2563eb"/>
+  <circle cx="70" cy="45" r="3" fill="#2563eb"/>
+  <path d="M50 65 Q60 70 70 65" stroke="#2563eb" stroke-width="2" fill="none"/>
+  <text x="60" y="100" text-anchor="middle" fill="white" font-size="12" font-weight="bold">VISION</text>
+</svg>
