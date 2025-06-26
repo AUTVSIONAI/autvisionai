@@ -1,6 +1,7 @@
 
 // MODO IMERSÃO - NAVEGAÇÃO MOBILE CORRIGIDA + SWIPE
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +28,7 @@ const ORBITAL_AGENTS = [
   { id: "ads", name: "Ads", type: "ads", active: true, description: "Marketing" }
 ];
 
-export default function ImmersiveVoiceMode({ isOpen, onClose, visionData }) {
+export default function ImmersiveVoiceMode({ isOpen, onClose }) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
@@ -359,3 +360,8 @@ export default function ImmersiveVoiceMode({ isOpen, onClose, visionData }) {
     </motion.div>
   );
 }
+
+ImmersiveVoiceMode.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired
+};

@@ -1,6 +1,6 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
-import { Loader2, Eye } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 // SPINNER BÁSICO
 export const LoadingSpinner = ({ size = 'md', text = 'Carregando...', className = '' }) => {
@@ -133,4 +133,23 @@ export const TableLoading = ({ rows = 5, cols = 4 }) => {
       ))}
     </div>
   );
+};
+
+LoadingSpinner.propTypes = {
+  size: PropTypes.oneOf(['sm', 'md', 'lg', 'xl']),
+  text: PropTypes.string,
+  className: PropTypes.string
+};
+
+FullPageLoading.propTypes = {
+  message: PropTypes.string
+};
+
+CardLoading.propTypes = {
+  lines: PropTypes.number
+};
+
+TableLoading.propTypes = {
+  rows: PropTypes.number,
+  cols: PropTypes.number
 };

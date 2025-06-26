@@ -1,0 +1,67 @@
+{
+  "version": 2,
+  "name": "autvision-frontend",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": {
+        "cache-control": "max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_API_BASE_URL": "@vite_api_base_url",
+    "VITE_OPENROUTER_API_KEY": "@vite_openrouter_api_key", 
+    "VITE_LLM_MOCK_MODE": "@vite_llm_mock_mode",
+    "VITE_ENABLE_VOICE": "@vite_enable_voice",
+    "VITE_APP_VERSION": "@vite_app_version"
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options", 
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/dashboard"
+    },
+    {
+      "source": "/app",
+      "destination": "/dashboard"
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}

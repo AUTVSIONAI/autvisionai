@@ -30,6 +30,10 @@ api.interceptors.response.use(
       // Token expirado ou inválido
       localStorage.removeItem(import.meta.env.VITE_AUTH_TOKEN_KEY);
       window.location.href = '/login';
+    } else if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+      // Backend offline - log do erro mas não interrompe a aplicação
+      console.warn('⚠️ Backend indisponível:', error.message);
+      console.info('💡 Algumas funcionalidades podem estar limitadas.');
     }
     return Promise.reject(error);
   }

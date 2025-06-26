@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,7 +13,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
-import { Textarea } from '@/components/ui/textarea';
 import { VisionCompanion } from '@/api/entities';
 import { useAdminData } from '../AdminDataContext';
 import { 
@@ -32,8 +32,7 @@ import {
   Save,
   Volume2,
   VolumeX,
-  TrendingUp,
-  MessageSquare
+  TrendingUp
 } from 'lucide-react';
 
 export default function VisionCoreController() {
@@ -52,13 +51,7 @@ export default function VisionCoreController() {
     errorRate: 0
   });
 
-  useEffect(() => {
-    if (data.visions) {
-      calculateMetrics();
-    }
-  }, [data]);
-
-  const calculateMetrics = () => {
+  const calculateMetrics = useCallback(() => {
     const visions = data.visions || [];
     
     setSystemMetrics({
@@ -69,7 +62,13 @@ export default function VisionCoreController() {
       systemLoad: 45 + Math.random() * 30,
       errorRate: Math.random() * 3
     });
-  };
+  }, [data.visions]);
+
+  useEffect(() => {
+    if (data.visions) {
+      calculateMetrics();
+    }
+  }, [data, calculateMetrics]);
 
   const handleEditClick = (vision) => {
     setEditingVision({
@@ -800,4 +799,12 @@ const MetricCard = ({ title, value, icon: Icon, color, trend }) => {
       </CardContent>
     </Card>
   );
+};
+
+MetricCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  icon: PropTypes.elementType.isRequired,
+  color: PropTypes.string.isRequired,
+  trend: PropTypes.string,
 };

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpar Cache AutVision</title>
+</head>
+<body>
+    <h1>🧹 Limpando Cache AutVision</h1>
+    <p>Este script vai limpar todo o localStorage e sessionStorage.</p>
+    <button onclick="clearAll()">Limpar Tudo</button>
+    <div id="result"></div>
+
+    <script>
+        function clearAll() {
+            // Limpar localStorage
+            localStorage.clear();
+            
+            // Limpar sessionStorage
+            sessionStorage.clear();
+            
+            // Limpar cookies específicos do AutVision
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            document.getElementById('result').innerHTML = 
+                '<p style="color: green;">✅ Cache limpo com sucesso!</p>' +
+                '<p>Agora você pode fechar esta aba e acessar o AutVision.</p>';
+        }
+        
+        // Auto-executar
+        setTimeout(() => {
+            clearAll();
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Agent } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,96 +16,69 @@ import {
   Mic,
   Shield,
   Lightbulb,
-  Share2,
-  Car,
-  Home,
-  Heart,
-  Megaphone
+  Share2
 } from "lucide-react";
 
 // DADOS PADRÃO PARA FALLBACK (caso backend não responda)
 const fallbackAgentsData = [
   {
-    id: "agent_01",
+    id: "agent_echo",
     name: "Echo",
     function: "Comunicação por voz e escuta ativa",
-    image: "", // Imagem removida
+    image: "/assets/images/agents/agent-echo.png",
     type: "communication",
     description: "Especialista em processamento de voz, comandos por áudio e comunicação interativa.",
     fallbackIcon: Mic,
     status: 'active'
   },
   {
-    id: "agent_02", 
+    id: "agent_guardian", 
     name: "Guardian",
     function: "Segurança e vigilância do sistema",
-    // IMAGEM TROCADA: Guardian agora usa a imagem do Social
-    image: "", // Imagem removida
+    image: "/assets/images/agents/agent-guardian.png",
     type: "security",
     description: "Monitora segurança, detecta ameaças e protege seus dados e automações.",
     fallbackIcon: Shield,
     status: 'active'
   },
   {
-    id: "agent_03",
+    id: "agent_nova",
     name: "Nova",
-    function: "Criatividade, sugestões e ideias visuais",
-    image: "", // Imagem removida
-    type: "creative",
-    description: "Gera ideias criativas, designs, conteúdo visual e soluções inovadoras.",
+    function: "Análise e insights de dados",
+    image: "/assets/images/agents/agent-nova.png",
+    type: "analytics",
+    description: "Processamento avançado de dados, análises preditivas e geração de insights.",
     fallbackIcon: Lightbulb,
     status: 'active'
   },
   {
-    id: "agent_04",
+    id: "agent_vision",
+    name: "Vision",
+    function: "Processamento de imagem e visão computacional",
+    image: "/assets/images/agents/agent-vision.png",
+    type: "vision",
+    description: "Especialista em análise de imagens, reconhecimento visual e visão computacional.",
+    fallbackIcon: Crown,
+    status: 'active'
+  },
+  {
+    id: "agent_social",
     name: "Social",
-    function: "Gestão de redes sociais, postagens e relatórios",
-    // IMAGEM TROCADA: Social agora usa a imagem do Guardian
-    image: "", // Imagem removida
+    function: "Gestão de redes sociais e engajamento",
+    image: "/assets/images/agents/agent-Social.jpeg",
     type: "social",
-    description: "Gerencia suas redes sociais, cria posts e analisa engajamento.",
+    description: "Gerencia presença online, cria conteúdo e monitora engajamento em redes sociais.",
     fallbackIcon: Share2,
     status: 'active'
   },
   {
-    id: "agent_05",
-    name: "Auto",
-    function: "Assistente veicular com comandos e status do carro",
-    // IMAGEM TROCADA: Auto agora usa a imagem do Nova
-    image: "", // Imagem removida
-    type: "automotive",
-    description: "Conecta com seu veículo, monitora status e executa comandos automotivos.",
-    fallbackIcon: Car,
-    status: 'active'
-  },
-  {
-    id: "agent_06",
-    name: "Ada",
-    function: "Casa inteligente, controle IoT e automações residenciais", 
-    image: "", // Imagem removida
-    type: "home",
-    description: "Controla dispositivos domésticos inteligentes e automações residenciais.",
-    fallbackIcon: Home,
-    status: 'active'
-  },
-  {
-    id: "agent_07",
-    name: "Friend",
-    function: "Companhia emocional, acolhimento e apoio humano",
-    image: "", // Imagem removida
-    type: "emotional",
-    description: "Oferece suporte emocional, companhia e conversas acolhedoras.",
-    fallbackIcon: Heart,
-    status: 'active'
-  },
-  {
-    id: "agent_08",
-    name: "Ads",
-    function: "Marketing, campanhas de mídia e publicidade estratégica",
-    image: "", // Imagem removida
-    type: "marketing",
-    description: "Cria e gerencia campanhas publicitárias e estratégias de marketing.",
-    fallbackIcon: Megaphone,
+    id: "agent_ada",
+    name: "ADA",
+    function: "Assistente de desenvolvimento e automação", 
+    image: "/assets/images/agents/agent-ADA.jpeg",
+    type: "development",
+    description: "Auxilia no desenvolvimento, automação de tarefas e otimização de processos.",
+    fallbackIcon: Settings,
     status: 'active'
   }
 ];
@@ -119,8 +92,11 @@ const planColors = {
 const typeColors = {
   communication: "from-blue-500 to-cyan-500",
   security: "from-red-500 to-orange-500", 
-  creative: "from-purple-500 to-pink-500",
+  analytics: "from-purple-500 to-pink-500",
+  vision: "from-indigo-500 to-blue-500",
   social: "from-green-500 to-emerald-500",
+  development: "from-yellow-500 to-orange-500",
+  creative: "from-purple-500 to-pink-500",
   automotive: "from-yellow-500 to-orange-500",
   home: "from-indigo-500 to-blue-500",
   emotional: "from-pink-500 to-rose-500",
@@ -280,20 +256,19 @@ export default function AgentsPage() {
                   
                   <CardHeader className="pb-4">
                     <div className="flex items-center gap-4">
-                      {/* IMAGEM REAL DO AGENTE COM FALLBACK E FUNDO BRANCO */}
-                      <div className={`w-16 h-16 rounded-xl bg-white p-1 shadow-lg border-2 border-gray-100`}>
+                      {/* IMAGEM REAL DO AGENTE SEM FUNDO - FLUTUANDO */}
+                      <div className={`w-16 h-16 rounded-xl p-1 shadow-lg border-2 border-transparent hover:shadow-xl transition-all duration-300`}>
                         {!imageErrors[agent.id] ? (
                           <img
                             src={agent.image}
                             alt={agent.name}
-                            className="w-full h-full object-contain rounded-lg bg-white"
+                            className="w-full h-full object-contain rounded-lg hover:scale-105 transition-transform duration-300"
                             onError={(e) => handleImageError(agent.id, e)}
                             onLoad={() => console.log(`✅ Imagem carregada: ${agent.name}`)}
-                            style={{ backgroundColor: 'white' }} // << FORÇA FUNDO BRANCO >>
                           />
                         ) : (
-                          <div className="w-full h-full rounded-lg flex items-center justify-center bg-white">
-                            <agent.fallbackIcon className="w-8 h-8 text-gray-400" />
+                          <div className="w-full h-full rounded-lg flex items-center justify-center">
+                            <agent.fallbackIcon className="w-8 h-8 text-gray-400 hover:text-gray-600 transition-colors duration-300" />
                           </div>
                         )}
                       </div>

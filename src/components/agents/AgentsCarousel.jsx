@@ -1,6 +1,5 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
@@ -137,3 +136,8 @@ export default function AgentsCarousel({ agents, onToggleAgent }) {
     </div>
   );
 }
+
+AgentsCarousel.propTypes = {
+  agents: PropTypes.array.isRequired,
+  onToggleAgent: PropTypes.func.isRequired
+};

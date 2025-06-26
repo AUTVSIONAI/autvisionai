@@ -1,7 +1,6 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, AreaChart, Area } from 'recharts';
-import { TrendingUp, BarChart3, Users, DollarSign } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from 'recharts';
+import { Users, DollarSign } from 'lucide-react';
 
 const monthlyRevenueData = [
   { name: 'Jan', Receita: 4000 }, { name: 'Fev', Receita: 3000 },
@@ -18,7 +17,8 @@ const newCustomersData = [
 
 export default function FinancialCharts() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="admin-full-width w-full max-w-none">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
       <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-white">
@@ -72,6 +72,7 @@ export default function FinancialCharts() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }

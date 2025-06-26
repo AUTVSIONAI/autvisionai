@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useAdminData } from '../AdminDataContext';
+import { useState } from 'react';
+import { useSync } from '@/contexts/SyncContext';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,9 @@ import { motion } from "framer-motion";
 import { 
   PlusCircle, 
   Gift, 
-  Link as LinkIcon, 
   Trash2, 
   Share2,
   TrendingUp,
-  Users,
   DollarSign,
   Eye,
   Copy,
@@ -26,8 +24,8 @@ import { Affiliate } from '@/api/entities';
 import { User } from '@/api/entities';
 
 export default function AffiliatesManagement() {
-  const { data, updateAffiliates, updateUsers } = useAdminData();
-  const { affiliates = [], users = [] } = data;
+  const { globalData, syncModule } = useSync();
+  const { affiliates = [], users = [] } = globalData;
 
   const [showForm, setShowForm] = useState(false);
   const [selectedUser, setSelectedUser] = useState('');
@@ -64,8 +62,8 @@ export default function AffiliatesManagement() {
 
       setShowForm(false);
       setSelectedUser('');
-      await updateAffiliates();
-      await updateUsers();
+      await syncModule('affiliates');
+      await syncModule('users');
     } catch (error) {
       console.error('Erro ao criar afiliado:', error);
     }
@@ -76,7 +74,7 @@ export default function AffiliatesManagement() {
     if (window.confirm('Tem certeza que deseja remover este afiliado?')) {
       try {
         await Affiliate.delete(id);
-        await updateAffiliates();
+        await syncModule('affiliates');
       } catch (error) {
         console.error('Erro ao deletar afiliado:', error);
       }
@@ -103,9 +101,35 @@ export default function AffiliatesManagement() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-full-width space-y-6 w-full max-w-none overflow-hidden">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+            <Share2 className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-100">Gerenciamento de Afiliados</h1>
+            <p className="text-gray-400 text-sm lg:text-base">Configure e monitore o programa de afiliados</p>
+          </div>
+        </div>
+        <div className="lg:ml-auto">
+          <Button 
+            onClick={() => setShowForm(!showForm)}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            <PlusCircle className="w-5 h-5 mr-2" />
+            Novo Afiliado
+          </Button>
+        </div>
+      </motion.div>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
         <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -156,35 +180,20 @@ export default function AffiliatesManagement() {
       </div>
 
       {/* Header */}
-      <Card className="bg-gray-800/50 border-gray-700 text-white">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Share2 className="w-5 h-5 text-blue-400" />
-            Sistema de Afiliados
-          </CardTitle>
-          <div className="flex gap-3">
-            <Button onClick={() => updateAffiliates()} variant="outline" className="border-gray-600 text-white hover:bg-gray-700">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Atualizar
-            </Button>
-            <Button onClick={() => setShowForm(true)} className="bg-blue-600 hover:bg-blue-700">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Novo Afiliado
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Formulário */}
-          {showForm && (
+      {showForm && (
+        <Card className="bg-gray-800/50 border-gray-700 text-white w-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="w-5 h-5 text-yellow-400" />
+              Criar Novo Afiliado
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="w-full">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-6 mb-6 bg-gray-700/50 rounded-lg space-y-4 border border-gray-600"
+              className="space-y-4 w-full"
             >
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <Award className="w-5 h-5 text-yellow-400" />
-                Criar Novo Afiliado
-              </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -247,10 +256,24 @@ export default function AffiliatesManagement() {
                 </Button>
               </div>
             </motion.div>
-          )}
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Tabela de Afiliados */}
-          <Table>
+      {/* Tabela de Afiliados */}
+      <Card className="bg-gray-800/50 border-gray-700 text-white w-full">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Share2 className="w-5 h-5 text-blue-400" />
+            Lista de Afiliados
+          </CardTitle>
+          <Button onClick={() => syncModule('affiliates')} variant="outline" className="border-gray-600 text-white hover:bg-gray-700">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Atualizar
+          </Button>
+        </CardHeader>
+        <CardContent className="w-full overflow-x-auto">
+          <Table className="w-full">
             <TableHeader>
               <TableRow className="border-gray-700 hover:bg-gray-800/50">
                 <TableHead className="text-gray-300">Afiliado</TableHead>

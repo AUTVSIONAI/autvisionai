@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { VisionCompanion } from "@/api/entities";
 import { Agent } from "@/api/entities";
 import { Routine } from "@/api/entities";
@@ -47,11 +48,11 @@ export const AdminDataProvider = ({ children }) => {
     try {
       const [users, visions, agents, routines, integrations, plans, affiliates, llms, platformConfig] = await Promise.all([
         User.list().catch(() => []),
-        VisionCompanion.list().catch(() => []),
+        VisionCompanion.filter().catch(() => []),
         Agent.list().catch(() => []),
         Routine.list().catch(() => []),
         Integration.list().catch(() => []),
-        Plan.list().catch(() => []),
+        Plan.filter().catch(() => []),
         Affiliate.list().catch(() => []),
         LLMConfig.list().catch(() => []),
         PlatformConfig.list().catch(() => [])
@@ -60,16 +61,21 @@ export const AdminDataProvider = ({ children }) => {
       setData({ users, visions, agents, routines, integrations, plans, affiliates, llms, platformConfig: platformConfig[0] || null });
     } catch (err) {
       console.error("Erro ao carregar dados admin:", err);
-      setError(err); // Changed from err.message to err
+      setError(err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // CARREGA OS DADOS NA MONTAGEM
+  // CARREGA OS DADOS NA MONTAGEM COM DEBOUNCE
   useEffect(() => {
-    loadAllData();
-  }, []);
+    // Delay para evitar múltiplos requests simultâneos
+    const timer = setTimeout(() => {
+      loadAllData();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []); // Executar apenas uma vez na montagem
 
   // FUNÇÕES DE ATUALIZAÇÃO ESPECÍFICAS
   const updateUsers = async () => {
@@ -208,4 +214,8 @@ export const AdminDataProvider = ({ children }) => {
       {children}
     </AdminDataContext.Provider>
   );
+};
+
+AdminDataProvider.propTypes = {
+  children: PropTypes.node.isRequired
 };

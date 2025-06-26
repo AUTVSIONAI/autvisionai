@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@/api/entities";
 import { VisionCompanion } from "@/api/entities";
 import { Plan } from "@/api/entities"; // IMPORTAR PLAN
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ import PurchasePlanModal from "../components/plans/PurchasePlanModal";
 
 export default function Settings() {
   const { toast } = useToast();
+  const { signOut, isAuthenticated, initializing } = useAuth();
   const [currentUser, setCurrentUser] = useState(null);
   const [currentPlan, setCurrentPlan] = useState(null);
   const [visionSettings, setVisionSettings] = useState(null);
@@ -69,72 +71,112 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    loadAllData();
-  }, []);
+    const loadAllData = async () => {
+      // Se ainda está inicializando ou não está autenticado, não carregar dados
+      if (initializing || !isAuthenticated) {
+        console.log('Settings: Aguardando autenticação...', { initializing, isAuthenticated });
+        setIsLoading(false);
+        return;
+      }
 
-  const loadAllData = async () => {
-    setIsLoading(true);
-    try {
-      const user = await User.me();
-      setCurrentUser(user);
-      
-      // Carregar plano atual
-      if (user.plan_id) {
+      setIsLoading(true);
+      try {
+        const user = await User.me();
+        
+        // Verificar se o usuário foi carregado corretamente
+        if (!user) {
+          console.error('Usuário não encontrado');
+          toast.error("Erro ao carregar dados do usuário.");
+          setIsLoading(false);
+          return;
+        }
+        
+        setCurrentUser(user);
+        
+        // Carregar plano atual se plan_id existir
+        if (user.plan_id) {
+          try {
+            const userPlans = await Plan.list(); 
+            const currentUserPlan = userPlans.find(p => p.id === user.plan_id);
+            setCurrentPlan(currentUserPlan || null);
+          } catch (error) {
+            console.error('Erro ao carregar plano:', error);
+            toast.error("Erro ao carregar seu plano.");
+            setCurrentPlan(null);
+          }
+        } else {
+          console.log('Usuário sem plano definido');
+          setCurrentPlan(null);
+        }
+        
+        // Carregar configurações salvas ou usar padrões
+        const userEmail = user.email || '';
+        const savedSettings = localStorage.getItem(`user_settings_${userEmail}`);
+        if (savedSettings) {
+          const parsed = JSON.parse(savedSettings);
+          setSettings(prev => ({
+            ...prev,
+            ...parsed,
+            full_name: user.full_name || '',
+            email: user.email || ''
+          }));
+        } else {
+          setSettings(prev => ({
+            ...prev,
+            full_name: user.full_name || '',
+            email: user.email || ''
+          }));
+        }
+
+        // Carregar ou criar configurações do Vision
         try {
-          const userPlans = await Plan.list(); // Renomeado para evitar conflito com 'user'
-          const currentUserPlan = userPlans.find(p => p.id === user.plan_id);
-          setCurrentPlan(currentUserPlan);
+          let visions = await VisionCompanion.filter({ created_by: userEmail });
+          let visionData;
+          if (visions.length === 0) {
+            visionData = await VisionCompanion.create({ 
+              name: "Meu Vision", 
+              created_by: userEmail, 
+              personality_type: "friendly", 
+              voice_enabled: true,
+              user_preferences: {} 
+            });
+            toast.info("Criamos um Vision padrão para você!");
+          } else {
+            visionData = visions[0];
+            // Ensure user_preferences exists for loaded data
+            if (!visionData.user_preferences) {
+              visionData.user_preferences = {};
+            }
+          }
+          setVisionSettings(visionData);
         } catch (error) {
-          console.error('Erro ao carregar plano:', error);
-          toast.error("Erro ao carregar seu plano.");
+          console.error('Erro ao carregar/criar Vision:', error);
+          toast.error("Erro ao carregar configurações do Vision.");
+        }
+
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        
+        // Se é erro de rede (backend offline), mostrar mensagem específica
+        if (error.code === 'ERR_NETWORK' || error.code === 'ECONNREFUSED') {
+          console.warn("⚠️ Backend offline - usando dados locais");
+          toast.warning("Modo offline: algumas configurações podem estar limitadas.");
+          
+          // Carregar configurações básicas do localStorage
+          const savedSettings = localStorage.getItem(`user_settings_offline`);
+          if (savedSettings) {
+            const parsed = JSON.parse(savedSettings);
+            setSettings(prev => ({ ...prev, ...parsed }));
+          }
+        } else {
+          toast.error("Erro ao carregar suas configurações.");
         }
       }
-      
-      // Carregar configurações salvas ou usar padrões
-      const savedSettings = localStorage.getItem(`user_settings_${user.email}`);
-      if (savedSettings) {
-        const parsed = JSON.parse(savedSettings);
-        setSettings(prev => ({
-          ...prev,
-          ...parsed,
-          full_name: user.full_name,
-          email: user.email
-        }));
-      } else {
-        setSettings(prev => ({
-          ...prev,
-          full_name: user.full_name,
-          email: user.email
-        }));
-      }
+      setIsLoading(false);
+    };
 
-      // Carregar ou criar configurações do Vision
-      let visions = await VisionCompanion.filter({ created_by: user.email });
-      let visionData;
-      if (visions.length === 0) {
-        visionData = await VisionCompanion.create({ 
-          name: "Meu Vision", 
-          created_by: user.email, 
-          personality_type: "friendly", 
-          voice_enabled: true,
-          user_preferences: {} // Initialize user_preferences here
-        });
-        toast.info("Criamos um Vision padrão para você!");
-      } else {
-        visionData = visions[0];
-        // Ensure user_preferences exists for loaded data
-        if (!visionData.user_preferences) {
-          visionData.user_preferences = {};
-        }
-      }
-      setVisionSettings(visionData);
-
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      toast.error("Erro ao carregar suas configurações.");
-    }
-    setIsLoading(false);
-  };
+    loadAllData();
+  }, [toast, initializing, isAuthenticated]);
 
   const handleVisionPreferenceChange = (field, value) => {
     setVisionSettings(prev => ({
@@ -205,8 +247,10 @@ export default function Settings() {
 
   const handleLogout = async () => {
     try {
-      await User.logout();
+      await signOut();
       toast.success("Logout realizado com sucesso!");
+      // Redireciona para a landing page
+      window.location.href = '/';
     } catch (error) {
       console.error("Erro no logout:", error);
       toast.error("Erro ao fazer logout");

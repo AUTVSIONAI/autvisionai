@@ -20,14 +20,14 @@ import {
   Zap,
   BarChart3
 } from 'lucide-react';
-import { useAdminData } from '../AdminDataContext';
+import { useSync } from '@/contexts/SyncContext';
 import { Mission } from '@/api/entities';
 import { Badge as BadgeEntity } from '@/api/entities';
 import { XP_SYSTEM, DEFAULT_MISSIONS, DEFAULT_BADGES } from '../system/gamificationSystem';
 
 export default function GamificationAdminPanel() {
-  const { data, updateUsers } = useAdminData();
-  const { users = [] } = data;
+  const { globalData, syncModule } = useSync();
+  const { users = [] } = globalData;
   
   const [missions, setMissions] = useState([]);
   const [badges, setBadges] = useState([]);

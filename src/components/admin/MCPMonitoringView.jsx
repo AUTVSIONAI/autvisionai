@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  AlertTriangle,
   Search,
   Filter,
   RefreshCw,
@@ -179,7 +178,7 @@ export default function MCPMonitoringView() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="admin-full-width space-y-6 w-full max-w-none overflow-hidden">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

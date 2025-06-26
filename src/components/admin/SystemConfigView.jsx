@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useAdminData } from "../AdminDataContext";
+import { useEffect, useState } from "react";
+import { useSync } from "@/contexts/SyncContext";
 import { SystemConfig } from "@/api/entities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Loader2, AlertTriangle, Shield, Server, Mail, Database, Activity, Settings as SettingsIcon, Zap } from "lucide-react";
+import { Save, Loader2, Shield, Server, Mail, Database, Activity, Settings as SettingsIcon, Zap } from "lucide-react";
 import { motion } from "framer-motion";
-import { useToast } from "../ui/toast";
 
 const CONFIG_CATEGORIES = {
   system: {
@@ -95,7 +93,7 @@ const CONFIG_CATEGORIES = {
 };
 
 export default function SystemConfigView() {
-  const { refreshAll } = useAdminData();
+  const { refreshAll } = useSync();
   // Removendo o useToast temporariamente para evitar erro
   // const { toast } = useToast();
   const [configs, setConfigs] = useState({});
@@ -257,7 +255,7 @@ export default function SystemConfigView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="admin-full-width space-y-6 w-full max-w-none overflow-hidden">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -22,8 +23,7 @@ import {
   CheckCircle,
   XCircle,
   Settings,
-  Code,
-  Webhook
+  Code
 } from "lucide-react";
 import { Integration } from '@/api/entities';
 
@@ -130,7 +130,7 @@ export default function IntegrationsManagement({ integrations, onUpdate }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-full-width space-y-6 w-full max-w-none overflow-hidden">
       <Card className="bg-gray-800/50 border-gray-700 text-white">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -423,3 +423,8 @@ export default function IntegrationsManagement({ integrations, onUpdate }) {
     </div>
   );
 }
+
+IntegrationsManagement.propTypes = {
+  integrations: PropTypes.array,
+  onUpdate: PropTypes.func,
+};

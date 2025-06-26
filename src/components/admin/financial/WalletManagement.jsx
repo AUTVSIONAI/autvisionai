@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { motion } from 'framer-motion';
 import { Wallet, Plus, Minus, TrendingUp, DollarSign, Users, RefreshCw, Send } from 'lucide-react';
 import { useAdminData } from '../../AdminDataContext';
-import { User } from '@/api/entities';
 import { Wallet as WalletEntity } from '@/api/entities';
 import { Transaction } from '@/api/entities';
 
 export default function WalletManagement() {
-  const { data, updateUsers } = useAdminData();
+  const { data } = useAdminData();
   const { users = [] } = data;
   
   const [wallets, setWallets] = useState([]);
@@ -44,7 +42,6 @@ export default function WalletManagement() {
 
     setIsProcessing(true);
     try {
-      const user = users.find(u => u.email === selectedUser);
       let wallet = wallets.find(w => w.user_email === selectedUser);
       
       // Criar carteira se não existir
@@ -124,7 +121,7 @@ export default function WalletManagement() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="admin-full-width w-full max-w-none space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700">

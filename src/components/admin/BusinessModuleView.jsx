@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Business } from "@/api/entities";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -11,7 +11,6 @@ import {
   MessageSquare, 
   Building2, 
   Phone, 
-  Users, 
   BarChart3,
   ExternalLink,
   CheckCircle,
@@ -100,22 +99,24 @@ export default function BusinessModuleView() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="admin-full-width space-y-6 w-full max-w-none overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-100">Módulo Empresarial</h1>
-              <p className="text-gray-400">Gestão de empresas com WhatsApp Business</p>
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+            <MessageSquare className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-100">Módulo Empresarial</h1>
+            <p className="text-gray-400 text-sm lg:text-base">Gestão de empresas com WhatsApp Business</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="lg:ml-auto flex items-center gap-3">
           <Link to={createPageUrl("BusinessOnboarding")}>
             <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600">
               <Plus className="w-4 h-4 mr-2" />
@@ -131,7 +132,7 @@ export default function BusinessModuleView() {
             </Button>
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
+import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
@@ -117,3 +118,35 @@ export const ToastClose = (props) => <button {...props} />;
 export const ToastDescription = ({ children }) => <div>{children}</div>;
 export const ToastTitle = ({ children }) => <div>{children}</div>;
 export const ToastViewport = (props) => <div {...props} />;
+
+// PropTypes
+ToastProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
+ToastContainer.propTypes = {
+  toasts: PropTypes.array.isRequired,
+  removeToast: PropTypes.func.isRequired
+};
+
+ToastItem.propTypes = {
+  toast: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    type: PropTypes.oneOf(['success', 'error', 'warning', 'info']).isRequired,
+    message: PropTypes.string.isRequired,
+    title: PropTypes.string
+  }).isRequired,
+  onRemove: PropTypes.func.isRequired
+};
+
+Toast.propTypes = {
+  children: PropTypes.node
+};
+
+ToastDescription.propTypes = {
+  children: PropTypes.node
+};
+
+ToastTitle.propTypes = {
+  children: PropTypes.node
+};

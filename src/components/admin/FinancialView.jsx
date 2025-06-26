@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,10 +15,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Settings,
-  Eye,
   RefreshCw,
-  Coins, // New import for Tokens
-  Share2 // New import for Affiliates Commissions
+  Coins,
+  Share2
 } from "lucide-react";
 
 // Componentes específicos do painel financeiro
@@ -161,28 +159,32 @@ export default function FinancialView() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8"
+      className="admin-full-width space-y-6 w-full max-w-none overflow-hidden"
     >
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Header Responsivo */}
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
             <DollarSign className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-100">Centro Financeiro</h1>
-            <p className="text-gray-400">Gestão completa de receitas, pagamentos e carteiras</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-100">Centro Financeiro</h1>
+            <p className="text-gray-400 text-sm lg:text-base">Gestão completa de receitas, pagamentos e carteiras</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button onClick={loadFinancialData} variant="outline" className="border-gray-600 text-white hover:bg-gray-700">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 lg:ml-auto">
+          <Button 
+            onClick={loadFinancialData} 
+            variant="outline" 
+            className="border-gray-600 text-white hover:bg-gray-700 w-full sm:w-auto"
+          >
             <RefreshCw className="w-4 h-4 mr-2" />
             Atualizar
           </Button>
           <Button
             onClick={() => setShowConfigModal(true)}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 w-full sm:w-auto"
           >
             <Settings className="w-4 h-4 mr-2" />
             Configurações

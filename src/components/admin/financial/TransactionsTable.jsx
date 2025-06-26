@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, FileDown, Filter } from "lucide-react";
+import { Search, FileDown } from "lucide-react";
 
 const mockTransactions = [
   { id: 'txn_1', user_email: 'user1@example.com', type: 'subscription', amount: 99.90, status: 'completed', gateway: 'Stripe', date: '2023-10-28T10:00:00Z' },
@@ -16,7 +15,7 @@ const mockTransactions = [
 ];
 
 export default function TransactionsTable() {
-  const [transactions, setTransactions] = useState(mockTransactions);
+  const [transactions] = useState(mockTransactions);
   const [searchTerm, setSearchTerm] = useState("");
 
   const getStatusBadge = (status) => {
@@ -36,7 +35,8 @@ export default function TransactionsTable() {
   );
 
   return (
-    <Card className="bg-gray-800/50 border-gray-700">
+    <div className="admin-full-width w-full max-w-none">
+      <Card className="bg-gray-800/50 border-gray-700 w-full">
       <CardHeader>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -93,5 +93,6 @@ export default function TransactionsTable() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

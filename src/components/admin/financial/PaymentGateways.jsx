@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,9 @@ import {
   PlusCircle, 
   Edit, 
   Trash2, 
-  CreditCard, 
-  CheckCircle, 
-  XCircle,
+  CreditCard,
   Settings,
-  Key,
-  Webhook
+  Key
 } from "lucide-react";
 
 const mockGateways = [
@@ -51,7 +48,7 @@ const mockGateways = [
 ];
 
 export default function PaymentGateways() {
-  const [gateways, setGateways] = useState(mockGateways);
+  const [gateways] = useState(mockGateways);
   const [showForm, setShowForm] = useState(false);
 
   const getStatusBadge = (gateway) => {
@@ -75,7 +72,8 @@ export default function PaymentGateways() {
   };
 
   return (
-    <Card className="bg-gray-800/50 border-gray-700">
+    <div className="admin-full-width w-full max-w-none">
+      <Card className="bg-gray-800/50 border-gray-700 w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-white flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
@@ -198,5 +196,6 @@ export default function PaymentGateways() {
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }

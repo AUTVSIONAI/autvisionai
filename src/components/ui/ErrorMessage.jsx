@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -168,4 +168,31 @@ export const NotFoundError = ({
       )}
     </div>
   );
+};
+
+// PropTypes
+ErrorMessage.propTypes = {
+  message: PropTypes.string,
+  onRetry: PropTypes.func,
+  type: PropTypes.oneOf(['general', 'network', 'server', 'auth']),
+  className: PropTypes.string
+};
+
+FullPageError.propTypes = {
+  title: PropTypes.string,
+  message: PropTypes.string,
+  onRetry: PropTypes.func,
+  onGoHome: PropTypes.func
+};
+
+InlineError.propTypes = {
+  message: PropTypes.string.isRequired,
+  onRetry: PropTypes.func
+};
+
+NotFoundError.propTypes = {
+  title: PropTypes.string,
+  message: PropTypes.string,
+  actionLabel: PropTypes.string,
+  onAction: PropTypes.func
 };

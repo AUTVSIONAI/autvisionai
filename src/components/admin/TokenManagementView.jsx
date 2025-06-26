@@ -1,5 +1,5 @@
 // SISTEMA DE ADMINISTRAÇÃO DE TOKENS - COMPLETO
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,19 +15,17 @@ import {
   Gift, 
   TrendingUp, 
   Users, 
-  DollarSign,
   Award,
-  RefreshCw,
   Send,
   History
 } from 'lucide-react';
-import { useAdminData } from '../AdminDataContext';
+import { useSync } from '@/contexts/SyncContext';
 import { User } from '@/api/entities';
 import { Transaction } from '@/api/entities';
 
 export default function TokenManagementView() {
-  const { data, updateUsers } = useAdminData();
-  const { users = [] } = data;
+  const { globalData, syncModule } = useSync();
+  const { users = [] } = globalData;
   
   const [selectedUser, setSelectedUser] = useState('');
   const [tokenAmount, setTokenAmount] = useState('');
@@ -76,7 +74,7 @@ export default function TokenManagementView() {
       setSelectedUser('');
       setTokenAmount('');
       setTokenReason('');
-      await updateUsers();
+      await syncModule('users');
     } catch (error) {
       console.error('Erro ao adicionar tokens:', error);
     }
@@ -113,7 +111,7 @@ export default function TokenManagementView() {
       setSelectedUser('');
       setTokenAmount('');
       setTokenReason('');
-      await updateUsers();
+      await syncModule('users');
     } catch (error) {
       console.error('Erro ao remover tokens:', error);
     }
@@ -151,7 +149,7 @@ export default function TokenManagementView() {
 
       setBulkAmount('');
       setBulkReason('');
-      await updateUsers();
+      await syncModule('users');
     } catch (error) {
       console.error('Erro na distribuição em massa:', error);
     }
@@ -162,7 +160,7 @@ export default function TokenManagementView() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-8"
+      className="admin-full-width w-full max-w-none space-y-6"
     >
       {/* Header */}
       <div className="flex items-center gap-4">

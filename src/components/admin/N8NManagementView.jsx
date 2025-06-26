@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,18 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import N8NWorkflowList from './N8NWorkflowList';
 import N8NWorkflowChart from './N8NWorkflowChart';
 import N8NWorkflowDetailsModal from './N8NWorkflowDetailsModal';
-import { useAdminData } from '../AdminDataContext';
 import { motion } from 'framer-motion';
 import { 
   AlertTriangle, 
   Settings, 
   RefreshCw, 
-  Play, 
-  Pause, 
   Activity, 
   Zap, 
   GitBranch, 
-  Clock, 
   CheckCircle, 
   XCircle,
   TrendingUp,
@@ -206,7 +202,6 @@ const MOCK_N8N_DATA = {
 };
 
 export default function N8NManagementView() {
-  const { data: { platformConfig }, isLoading: isContextLoading } = useAdminData();
   
   const [workflows, setWorkflows] = useState([]);
   const [executions, setExecutions] = useState([]);
@@ -295,26 +290,6 @@ export default function N8NManagementView() {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'inactive': return 'bg-gray-500';
-      case 'warning': return 'bg-yellow-500';
-      case 'error': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'active': return CheckCircle;
-      case 'inactive': return Pause;
-      case 'warning': return AlertTriangle;
-      case 'error': return XCircle;
-      default: return Activity;
-    }
-  };
-
   const filteredWorkflows = workflows.filter(workflow => {
     const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          workflow.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -357,20 +332,24 @@ export default function N8NManagementView() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="admin-full-width space-y-6 w-full max-w-none overflow-hidden">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col lg:flex-row lg:items-center gap-4 mb-8"
+      >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
             <Sliders className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-100">Painel N8N</h1>
-            <p className="text-gray-400">Gerenciamento de workflows de automação</p>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-100">Painel N8N</h1>
+            <p className="text-gray-400 text-sm lg:text-base">Gerenciamento de workflows de automação</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="lg:ml-auto flex items-center gap-3">
           <Button onClick={loadN8NData} variant="outline" className="border-gray-600 text-white hover:bg-gray-700">
             <RefreshCw className="w-4 h-4 mr-2" />
             Atualizar
@@ -383,7 +362,7 @@ export default function N8NManagementView() {
             Novo Workflow
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

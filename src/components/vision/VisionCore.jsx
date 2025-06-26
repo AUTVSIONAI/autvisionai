@@ -1,5 +1,6 @@
 // VISION CORE - CHAT COMPACTO SINCRONIZADO
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,12 +16,8 @@ import {
 import ReactiveVisionAgent from './ReactiveVisionAgent';
 import { LLM } from '@/api/entities';
 
-// CONTEXTO GLOBAL PARA SINCRONIZAÇÃO
-const VisionContext = React.createContext();
-
-export default function VisionCore({ visionData, onInteraction, onVoiceModeOpen, onVisionUpdated }) {
+export default function VisionCore({ visionData, onInteraction, onVoiceModeOpen }) {
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState([
@@ -36,7 +33,6 @@ export default function VisionCore({ visionData, onInteraction, onVoiceModeOpen,
   // REAÇÕES EMOCIONAIS BASEADAS NO CONTEXTO
   const getVisionEmotion = (context, message) => {
     if (isListening) return 'listening';
-    if (isSpeaking) return 'speaking';
     if (isProcessing) return 'thinking';
     
     // Análise simples de sentimento
@@ -147,13 +143,11 @@ export default function VisionCore({ visionData, onInteraction, onVoiceModeOpen,
 
   const getVisionContext = () => {
     if (isListening) return "listening";
-    if (isSpeaking) return "speaking";
     if (isProcessing) return "processing";
     return "idle";
   };
 
   const visionName = visionData?.name || 'Vision';
-  const visionPersonality = visionData?.personality_type || 'friendly';
   const visionLevel = visionData?.learning_level || 1;
   const visionInteractions = visionData?.total_interactions || 0;
 
@@ -262,3 +256,13 @@ export default function VisionCore({ visionData, onInteraction, onVoiceModeOpen,
     </div>
   );
 }
+
+VisionCore.propTypes = {
+  visionData: PropTypes.shape({
+    name: PropTypes.string,
+    learning_level: PropTypes.number,
+    total_interactions: PropTypes.number
+  }),
+  onInteraction: PropTypes.func,
+  onVoiceModeOpen: PropTypes.func
+};

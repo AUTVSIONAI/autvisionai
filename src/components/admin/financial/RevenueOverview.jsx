@@ -1,5 +1,4 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, TrendingUp, Users, CreditCard } from "lucide-react";
 
 const mockStats = {
@@ -11,7 +10,8 @@ const mockStats = {
 
 export default function RevenueOverview() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="admin-full-width w-full max-w-none">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
       <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -69,6 +69,7 @@ export default function RevenueOverview() {
           </div>
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 }

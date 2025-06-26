@@ -1,6 +1,7 @@
 
 // VISION AGENT - IMAGENS LOCAIS AUTVISION
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // IMAGENS LOCAIS - AUTVISION
@@ -235,3 +236,14 @@ export default function ReactiveVisionAgent({
     </motion.div>
   );
 }
+
+ReactiveVisionAgent.propTypes = {
+  type: PropTypes.string,
+  expression: PropTypes.string,
+  size: PropTypes.number,
+  className: PropTypes.string,
+  isActive: PropTypes.bool,
+  onClick: PropTypes.func,
+  variant: PropTypes.string,
+  context: PropTypes.string
+};

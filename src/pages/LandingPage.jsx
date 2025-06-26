@@ -1,56 +1,86 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { User } from "@/api/entities";
-import { Plan } from "@/api/entities"; // Import Plan entity
+import { Plan } from "@/api/entities";
 import { 
   Zap, 
   Brain, 
   Shield, 
-  Rocket, 
-  Eye, 
-  MessageSquare, 
   ArrowRight,
-  Play,
-  Star,
-  Globe,
-  Lock,
   Sparkles,
-  Users,
-  BarChart3,
   Clock,
   Check,
   Cpu,
   Layers,
   TrendingUp,
-  LifeBuoy,
-  Package
+  Menu,
+  X
 } from 'lucide-react';
 
-// Pricing Section Component
+// Planos mock para garantir que sempre funcione
+const mockPlans = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 49,
+    description: 'Ideal para começar sua jornada de automação',
+    features: ['5 automações', 'Suporte por email', 'Integrações básicas', '100 execuções/mês'],
+    is_popular: false
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    price: 149,
+    description: 'Para empresas que querem crescer rapidamente',
+    features: ['50 automações', 'Suporte prioritário', 'Todas as integrações', '5000 execuções/mês', 'Analytics avançados'],
+    is_popular: true
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 299,
+    description: 'Solução completa para grandes empresas',
+    features: ['Automações ilimitadas', 'Suporte 24/7', 'Integrações customizadas', 'Execuções ilimitadas', 'Consultoria dedicada'],
+    is_popular: false
+  }
+];
+
+// 💳 PRICING SECTION
 function PricingSection() {
   const [plans, setPlans] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handlePlanSelect = () => {
+    // Redireciona para página de contato ou newsletter
+    window.open('mailto:contato@autvision.com', '_blank');
+  };
 
   useEffect(() => {
     const loadPlans = async () => {
       setIsLoading(true);
       try {
         const plansList = await Plan.filter({ is_active: true });
-        const uniquePlans = plansList.reduce((acc, current) => {
-          if (!acc.find(plan => plan.name === current.name)) {
-            acc.push(current);
-          }
-          return acc;
-        }, []);
-        setPlans(uniquePlans.sort((a, b) => a.price - b.price));
+        if (plansList && plansList.length > 0) {
+          const uniquePlans = plansList.reduce((acc, current) => {
+            if (!acc.find(plan => plan.name === current.name)) {
+              acc.push(current);
+            }
+            return acc;
+          }, []);
+          setPlans(uniquePlans.sort((a, b) => a.price - b.price));
+        } else {
+          // Se não conseguir carregar da API, usa os planos mock
+          setPlans(mockPlans);
+        }
       } catch (error) {
         console.error("Erro ao carregar planos:", error);
+        // Em caso de erro, usa os planos mock
+        setPlans(mockPlans);
       }
       setIsLoading(false);
     };
@@ -70,7 +100,7 @@ function PricingSection() {
             Escolha seu Vision
           </h2>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Planos flexíveis para cada nível de ambição. Comece sua jornada hoje.
+            Planos flexíveis para cada nível de ambição. Transforme sua produtividade hoje.
           </p>
         </motion.div>
         
@@ -90,39 +120,48 @@ function PricingSection() {
                 <Card className={`flex flex-col h-full bg-gray-900/80 backdrop-blur-lg border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 ${plan.is_popular ? 'ring-2 ring-blue-500 scale-105' : ''}`}>
                   {plan.is_popular && (
                     <Badge className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 py-1 px-4">
-                      <Star className="w-4 h-4 mr-2" />
                       Mais Popular
                     </Badge>
                   )}
-                  <CardHeader className="pt-10">
-                    <CardTitle className="text-2xl font-bold text-white text-center">{plan.name}</CardTitle>
-                    <div className="text-center my-6">
-                      <span className="text-5xl font-bold text-white">R${plan.price}</span>
-                      <span className="text-lg text-gray-400">/mês</span>
+                  <CardHeader className="text-center pb-8 pt-8">
+                    <CardTitle className="text-2xl text-white mb-2">{plan.name}</CardTitle>
+                    <div className="text-4xl font-bold text-white mb-2">
+                      R$ {plan.price}
+                      <span className="text-base font-normal text-gray-400">/mês</span>
                     </div>
+                    <p className="text-gray-400">{plan.description}</p>
                   </CardHeader>
-                  <CardContent className="flex-grow">
-                    <ul className="space-y-4">
-                      {plan.features?.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-3">
+                  <CardContent className="flex-1 pb-8">
+                    <div className="space-y-4 mb-8">
+                      {plan.features && typeof plan.features === 'string' && plan.features.split(',').map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
+                          <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                          <span className="text-gray-300">{feature.trim()}</span>
+                        </div>
+                      ))}
+                      {plan.features && Array.isArray(plan.features) && plan.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-3">
                           <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
                           <span className="text-gray-300">{feature}</span>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
-                  </CardContent>
-                  <div className="p-6 mt-auto">
-                    <Button
-                      size="lg"
-                      className={`w-full text-lg font-semibold transition-all duration-300 ${
-                        plan.is_popular 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:shadow-blue-500/30 shadow-lg text-white' 
-                        : 'bg-slate-700 hover:bg-slate-600 text-white'
-                      }`}
+                      {(!plan.features || (typeof plan.features !== 'string' && !Array.isArray(plan.features))) && (
+                        <div className="flex items-center gap-3">
+                          <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                          <span className="text-gray-300">Recursos inclusos</span>
+                        </div>
+                      )}
+                    </div>
+                    <Button 
+                      onClick={handlePlanSelect}
+                      className={`w-full ${plan.is_popular 
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700' 
+                        : 'bg-gray-700 hover:bg-gray-600'
+                      } text-white`}
                     >
-                      Começar Agora
+                      Entrar em Contato
                     </Button>
-                  </div>
+                  </CardContent>
                 </Card>
               </motion.div>
             ))}
@@ -134,230 +173,315 @@ function PricingSection() {
 }
 
 export default function LandingPage() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const user = await User.me();
-        setCurrentUser(user);
-      } catch (e) { /* Not logged in */ }
-    };
-    checkAuth();
-  }, []);
-
-  const handleGetStarted = async () => {
-    setIsLoading(true);
-    try {
-      if (currentUser) {
-        window.location.href = createPageUrl("ClientDashboard");
-      } else {
-        await User.login();
-      }
-    } catch (error) {
-      console.error("Erro no login:", error);
-    }
-    setIsLoading(false);
-  };
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  const features = [
-    { icon: Brain, title: "Inteligência Preditiva", description: "O Vision antecipa suas necessidades antes mesmo de você pensar nelas." },
-    { icon: Layers, title: "Ecossistema Conectado", description: "Unifique todos os seus apps e serviços em um fluxo de trabalho inteligente." },
-    { icon: Zap, title: "Automação Instantânea", description: "Crie rotinas complexas com um simples comando de voz ou clique." },
-    { icon: Shield, title: "Segurança de Nível Militar", description: "Seus dados protegidos pela mais avançada criptografia ponta-a-ponta." },
-    { icon: Cpu, title: "Hardware Opcional", description: "Dispositivos físicos que trazem o poder do Vision para seu ambiente." },
-    { icon: TrendingUp, title: "Analytics de Vida", description: "Métricas que te ajudam a otimizar seu tempo e alcançar seus objetivos." },
-  ];
-
+  // FAQ Section Data
   const faqs = [
-    { q: "O que é o Vision exatamente?", a: "O Vision é seu copiloto pessoal de IA. Ele automatiza tarefas, gerencia informações e se integra a todos os seus aplicativos para liberar seu tempo e potencializar sua produtividade." },
+    { q: "O que é o AutVision exatamente?", a: "O AutVision é sua plataforma de automação inteligente com IA. Automatiza tarefas complexas, gerencia informações e se integra a todos os seus aplicativos para maximizar sua produtividade." },
     { q: "Meus dados estão seguros?", a: "Absolutamente. Usamos criptografia de nível militar (AES-256) e seguimos as melhores práticas de segurança do mercado. Sua privacidade é nossa prioridade máxima." },
     { q: "Posso cancelar a qualquer momento?", a: "Sim. Nossos planos são flexíveis e você pode cancelar ou alterar seu plano a qualquer momento, sem burocracia." },
-    { q: "O Vision funciona com meus aplicativos?", a: "Provavelmente sim. O Vision se integra com mais de 1000 serviços populares, incluindo Google Suite, Microsoft 365, redes sociais, apps de produtividade e muito mais." },
+    { q: "O AutVision funciona com meus aplicativos?", a: "Sim. O AutVision se integra com mais de 1000 serviços populares, incluindo Google Suite, Microsoft 365, redes sociais, apps de produtividade e muito mais." },
   ];
 
+  const handleContactUs = () => {
+    window.open('mailto:contato@autvision.com?subject=Interesse%20no%20AutVision', '_blank');
+  };
+
+  const handleLogin = () => {
+    window.location.href = '/Login';
+  };
+
+  const handleSignUp = () => {
+    window.location.href = '/SignUp';
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white overflow-hidden">
+    <div className="min-h-screen bg-slate-900 text-white">
       
-      {/* Header Navigation */}
+      {/* 📱 HEADER NAVIGATION */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/30 backdrop-blur-lg border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-3">
             <img src="/assets/images/autvision-logo.png" alt="AutVision" className="w-10 h-10" />
-            {/* Logo AutVision - Imagem local */}
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">AutVision</span>
           </motion.div>
-          <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="hidden md:flex items-center gap-8">
+          
+          {/* Desktop Menu */}
+          <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-gray-300 hover:text-white transition-colors">Recursos</a>
             <a href="#pricing" className="text-gray-300 hover:text-white transition-colors">Planos</a>
             <a href="#faq" className="text-gray-300 hover:text-white transition-colors">FAQ</a>
-            <Button onClick={handleGetStarted} variant="outline" className="border-white/20 text-white hover:bg-white/10">
-              {currentUser ? 'Acessar Painel' : 'Entrar'}
+            
+            <Button onClick={handleLogin} variant="outline" className="border-white/20 text-white hover:bg-white/10">
+              Entrar
+            </Button>
+            
+            <Button onClick={handleSignUp} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 text-white">
+              Criar Conta
+            </Button>
+            
+            <Button onClick={handleContactUs} variant="outline" className="border-green-500/50 text-green-400 hover:bg-green-500/10">
+              💬 Contato
             </Button>
           </motion.div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden p-2 text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden bg-black/90 backdrop-blur-lg border-t border-white/10"
+          >
+            <div className="px-6 py-4 space-y-4">
+              <a href="#features" className="block text-gray-300 hover:text-white transition-colors py-2" onClick={handleMobileMenuClose}>Recursos</a>
+              <a href="#pricing" className="block text-gray-300 hover:text-white transition-colors py-2" onClick={handleMobileMenuClose}>Planos</a>
+              <a href="#faq" className="block text-gray-300 hover:text-white transition-colors py-2" onClick={handleMobileMenuClose}>FAQ</a>
+              
+              <div className="pt-4 space-y-3">
+                <Button onClick={() => { handleLogin(); handleMobileMenuClose(); }} variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+                  Entrar
+                </Button>
+                
+                <Button onClick={() => { handleSignUp(); handleMobileMenuClose(); }} className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                  Criar Conta
+                </Button>
+                
+                <Button onClick={() => { handleContactUs(); handleMobileMenuClose(); }} variant="outline" className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10">
+                  💬 Contato
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </nav>
 
-      {/* HERO SECTION CINEMATOGRÁFICO */}
+      {/* 🎬 HERO SECTION */}
       <section className="relative min-h-screen flex items-center justify-center text-center px-6">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-blue-900/30 to-slate-900"></div>
         <div className="absolute inset-0 overflow-hidden">
-          {/* Grid de fundo */}
-          <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_60%,transparent_100%)]">
-            <div 
-              className="absolute inset-[-100%] animate-[spin_40s_linear_infinite]" 
-              style={{ 
-                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(14 20 54 / 0.5)'%3e%3cpath d='M0 .5H31.5V32'/%3e%3c/svg%3e")` 
-              }}
-            ></div>
-          </div>
+          <div className="absolute -top-40 -right-32 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-32 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"></div>
         </div>
         
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }}>
-            <motion.h1 
-              className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-300 via-cyan-300 to-purple-400 bg-clip-text text-transparent"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.2 }}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-6xl mx-auto"
+        >
+          <Badge className="mb-6 bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-2">
+            <Sparkles className="w-4 h-4 mr-2" />
+            Tecnologia de IA Avançada
+          </Badge>
+          
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            Sua <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Visão Inteligente</span> do Futuro
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
+            Automatize tarefas complexas, integre sistemas e multiplique sua produtividade com nossa plataforma de IA empresarial de última geração.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              onClick={handleContactUs}
+              size="lg" 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-4 h-auto"
             >
-              Sua vida, automatizada.
-              <br />
-              Sua mente, livre.
-            </motion.h1>
-
-            <motion.p 
-              className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.4 }}
+              <Zap className="w-5 h-5 mr-2" />
+              Começar Agora
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-white/20 text-white hover:bg-white/10 text-lg px-8 py-4 h-auto"
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Conheça o Vision, seu copiloto pessoal de IA projetado para eliminar o trabalho repetitivo e liberar seu verdadeiro potencial.
-            </motion.p>
-
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.6 }}
-            >
-              <Button 
-                onClick={handleGetStarted}
-                disabled={isLoading}
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 text-white px-8 py-4 text-lg font-semibold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 flex items-center gap-2"
-              >
-                <Sparkles className="w-5 h-5" />
-                Quero meu Vision
-                <ArrowRight className="w-5 h-5" />
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-      
-      {/* WHY VISION SECTION */}
-      <section className="py-20 bg-slate-900/70 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto px-6 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
-              E se sua vida tivesse um copiloto?
-            </h2>
-            <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-12">
-              O Vision não é apenas uma ferramenta, é uma extensão da sua mente. Ele aprende, adapta-se e age para que você possa focar no que realmente importa.
-            </p>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700">
-                <Zap className="w-10 h-10 text-yellow-400 mx-auto mb-4"/>
-                <h3 className="text-xl font-semibold text-white mb-2">Automatize o Impossível</h3>
-                <p className="text-gray-400">Conecte qualquer serviço e crie automações que você nunca imaginou serem possíveis.</p>
-              </div>
-              <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700">
-                <Clock className="w-10 h-10 text-green-400 mx-auto mb-4"/>
-                <h3 className="text-xl font-semibold text-white mb-2">Recupere Seu Tempo</h3>
-                <p className="text-gray-400">Deixe as tarefas repetitivas para o Vision e ganhe horas preciosas no seu dia.</p>
-              </div>
-              <div className="bg-gray-800/50 p-6 rounded-2xl border border-gray-700">
-                <Brain className="w-10 h-10 text-blue-400 mx-auto mb-4"/>
-                <h3 className="text-xl font-semibold text-white mb-2">Alcance Clareza Mental</h3>
-                <p className="text-gray-400">Com tudo organizado e automatizado, sua mente fica livre para criar e inovar.</p>
-              </div>
+              Ver Recursos
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+          
+          <div className="mt-12 flex flex-wrap justify-center gap-8 text-sm text-gray-400">
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-green-400" />
+              Segurança Militar
             </div>
-        </div>
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-blue-400" />
+              IA Avançada
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-purple-400" />
+              24/7 Disponível
+            </div>
+          </div>
+        </motion.div>
       </section>
 
-      {/* FEATURES SHOWCASE */}
-      <section id="features" className="py-20">
+      {/* 🚀 FEATURES SECTION */}
+      <section id="features" className="py-20 bg-slate-800/50">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Engenharia de Ponta</h2>
-            <p className="text-xl text-gray-400">Construído com a tecnologia do futuro, disponível hoje.</p>
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Recursos Revolucionários
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Descubra como nossa IA transforma completamente sua forma de trabalhar.
+            </p>
           </motion.div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }}>
-                <div className="bg-gray-800/40 p-8 rounded-2xl border border-gray-700/50 h-full hover:border-blue-500/50 transition-colors">
-                  <feature.icon className="w-8 h-8 text-blue-400 mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-400">{feature.description}</p>
-                </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: Brain,
+                title: "IA Avançada",
+                description: "Algoritmos de machine learning de última geração que aprendem com seus padrões e otimizam automaticamente seus processos."
+              },
+              {
+                icon: Cpu,
+                title: "Automação Inteligente",
+                description: "Automatize fluxos complexos de trabalho com regras personalizáveis e integração nativa com centenas de aplicações."
+              },
+              {
+                icon: Layers,
+                title: "Integrações Infinitas",
+                description: "Conecte todos os seus sistemas e dados em uma única plataforma unificada. Mais de 1000 integrações disponíveis."
+              },
+              {
+                icon: Shield,
+                title: "Segurança Absoluta",
+                description: "Criptografia militar AES-256, compliance total com LGPD/GDPR e infraestrutura em nuvem de nível enterprise."
+              },
+              {
+                icon: TrendingUp,
+                title: "Analytics Preditivos",
+                description: "Insights avançados com IA preditiva para antecipar tendências e otimizar decisões estratégicas em tempo real."
+              },
+              {
+                icon: Sparkles,
+                title: "Interface Intuitiva",
+                description: "Design minimalista e UX intuitiva. Configure automações complexas em minutos, sem conhecimento técnico."
+              }
+            ].map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="h-full bg-gray-900/80 backdrop-blur-lg border border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 group">
+                  <CardContent className="p-8">
+                    <feature.icon className="w-12 h-12 text-blue-400 mb-6 group-hover:scale-110 transition-transform" />
+                    <h3 className="text-xl font-semibold text-white mb-4">{feature.title}</h3>
+                    <p className="text-gray-400 leading-relaxed">{feature.description}</p>
+                  </CardContent>
+                </Card>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
-      
-      {/* PRICING SECTION */}
+
+      {/* 💳 PRICING SECTION */}
       <PricingSection />
 
-      {/* FAQ SECTION */}
-      <section id="faq" className="py-20">
-        <div className="max-w-3xl mx-auto px-6">
-          <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Perguntas Frequentes</h2>
-            <p className="text-xl text-gray-400">Respostas claras para suas dúvidas mais importantes.</p>
+      {/* ❓ FAQ SECTION */}
+      <section id="faq" className="py-20 bg-slate-800/50">
+        <div className="max-w-4xl mx-auto px-6">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Perguntas Frequentes
+            </h2>
+            <p className="text-xl text-gray-400">
+              Tire suas dúvidas sobre nossa plataforma.
+            </p>
           </motion.div>
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`} className="bg-gray-800/40 border border-gray-700/50 rounded-lg mb-4 px-6">
-                <AccordionTrigger className="text-lg text-white font-medium hover:no-underline">{faq.q}</AccordionTrigger>
-                <AccordionContent className="text-gray-300 text-base pt-2">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <Accordion type="single" collapsible className="space-y-4">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`} className="bg-gray-900/50 border border-gray-700/50 rounded-lg px-6">
+                  <AccordionTrigger className="text-white hover:text-blue-400 transition-colors">
+                    {faq.q}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-400 leading-relaxed">
+                    {faq.a}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto text-center px-6">
-          <motion.div initial={{ opacity: 0, y: 50 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
-              Liberte seu Potencial.
+      {/* 📧 CTA SECTION */}
+      <section className="py-20 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Pronto para Revolucionar sua Produtividade?
             </h2>
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Pare de fazer trabalho de robô. Comece a viver no seu máximo.
+              Junte-se a milhares de empresas que já transformaram seus resultados com AutVision.
             </p>
-            <Button onClick={handleGetStarted} size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-105 text-white px-10 py-5 text-xl font-bold rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300">
-              Quero meu Vision Agora
+            <Button 
+              onClick={handleContactUs}
+              size="lg" 
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xl px-10 py-6 h-auto"
+            >
+              <Sparkles className="w-6 h-6 mr-3" />
+              Começar Transformação
             </Button>
           </motion.div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-slate-900/80 backdrop-blur-lg border-t border-white/10 py-16">
+      {/* 🦶 FOOTER */}
+      <footer className="bg-slate-900 border-t border-white/10 py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="md:col-span-1">
+            <div>
               <div className="flex items-center gap-3 mb-4">
-                <img src="/assets/images/autvision-logo.png" alt="AutVision" className="w-10 h-10" />
-                {/* Logo AutVision - Imagem local */}
-                <span className="text-2xl font-bold text-white">AutVision</span>
+                <img src="/assets/images/autvision-logo.png" alt="AutVision" className="w-8 h-8" />
+                <span className="text-xl font-bold text-white">AutVision</span>
               </div>
-              <p className="text-gray-400 mb-4">Sua vida, automatizada. Sua mente, livre.</p>
+              <p className="text-gray-400 leading-relaxed">
+                Transformando negócios através de automação inteligente e IA avançada.
+              </p>
             </div>
             <div>
               <h3 className="text-white font-semibold mb-4">Produto</h3>
@@ -370,8 +494,8 @@ export default function LandingPage() {
             <div>
               <h3 className="text-white font-semibold mb-4">Empresa</h3>
               <ul className="space-y-3">
-                <li><a href="#" className="text-gray-400 hover:text-white">Sobre Nós</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Contato</a></li>
+                <li><a href="mailto:contato@autvision.com" className="text-gray-400 hover:text-white">Contato</a></li>
+                <li><a href="mailto:suporte@autvision.com" className="text-gray-400 hover:text-white">Suporte</a></li>
               </ul>
             </div>
             <div>

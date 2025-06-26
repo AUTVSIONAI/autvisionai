@@ -1,4 +1,3 @@
-import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -230,7 +229,7 @@ export default function TermsOfService() {
                 <h4 className="font-semibold text-red-400 mb-2">⚠️ Limitação de Responsabilidade:</h4>
                 <div className="text-sm space-y-2">
                   <p className="text-gray-300">
-                    A AutVision fornece a plataforma "como está" e não garante operação ininterrupta.
+                    A AutVision fornece a plataforma &quot;como está&quot; e não garante operação ininterrupta.
                     Nossa responsabilidade está limitada ao valor pago pelos serviços nos últimos 12 meses.
                   </p>
 

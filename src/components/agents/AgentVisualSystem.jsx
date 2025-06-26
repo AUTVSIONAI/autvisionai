@@ -1,5 +1,6 @@
 // SISTEMA VISUAL DE AGENTES - ÓRBITA DINÂMICA
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -97,7 +98,6 @@ export const agentsData = [
 export default function AgentVisualSystem({ 
   activeAgents = [], 
   onAgentSelect,
-  showOrbit = true,
   compact = false 
 }) {
   const [selectedAgent, setSelectedAgent] = useState(null);
@@ -371,3 +371,9 @@ export default function AgentVisualSystem({
     </div>
   );
 }
+
+AgentVisualSystem.propTypes = {
+  activeAgents: PropTypes.array,
+  onAgentSelect: PropTypes.func,
+  compact: PropTypes.bool
+};

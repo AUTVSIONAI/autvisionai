@@ -1,77 +1,46 @@
 import Layout from "./Layout.jsx";
-
 import Settings from "./Settings";
-
 import Admin from "./Admin";
-
 import LandingPage from "./LandingPage";
-
+import Login from "./Login";
+import SignUp from "./SignUp";
 import ClientDashboard from "./ClientDashboard";
-
 import Agents from "./Agents";
-
 import Routines from "./Routines";
-
 import Integrations from "./Integrations";
-
 import AgentConfig from "./AgentConfig";
-
 import ProjectReport from "./ProjectReport";
-
 import BusinessOnboarding from "./BusinessOnboarding";
-
 import BusinessAgentConfig from "./BusinessAgentConfig";
-
 import WhatsAppIntegration from "./WhatsAppIntegration";
-
 import BusinessDashboard from "./BusinessDashboard";
-
 import PrivacyPolicy from "./PrivacyPolicy";
-
 import TermsOfService from "./TermsOfService";
-
 import Profile from "./Profile";
 
-import StatusPage from "./StatusPage";
-
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import RedirectHandler from '@/components/auth/RedirectHandler';
 
 const PAGES = {
-    
     Settings: Settings,
-    
     Admin: Admin,
-    
     LandingPage: LandingPage,
-    
+    Login: Login,
+    SignUp: SignUp,
     ClientDashboard: ClientDashboard,
-    
     Agents: Agents,
-    
     Routines: Routines,
-    
     Integrations: Integrations,
-    
     AgentConfig: AgentConfig,
-    
     ProjectReport: ProjectReport,
-    
     BusinessOnboarding: BusinessOnboarding,
-    
     BusinessAgentConfig: BusinessAgentConfig,
-    
     WhatsAppIntegration: WhatsAppIntegration,
-    
     BusinessDashboard: BusinessDashboard,
-    
     PrivacyPolicy: PrivacyPolicy,
-    
     TermsOfService: TermsOfService,
-    
     Profile: Profile,
-    
-    StatusPage: StatusPage,
-    
 }
 
 function _getCurrentPage(url) {
@@ -93,49 +62,123 @@ function PagesContent() {
     const currentPage = _getCurrentPage(location.pathname);
     
     return (
-        <Layout currentPageName={currentPage}>
+        <RedirectHandler>
             <Routes>            
+                {/* Rota principal - LANDING PAGE PRIMEIRO */}
+                <Route path="/" element={<LandingPage />} />
                 
-                    <Route path="/" element={<Settings />} />
-                
-                
-                <Route path="/Settings" element={<Settings />} />
-                
-                <Route path="/Admin" element={<Admin />} />
-                
+                {/* Páginas públicas - SEM LAYOUT */}
                 <Route path="/LandingPage" element={<LandingPage />} />
-                
-                <Route path="/ClientDashboard" element={<ClientDashboard />} />
-                
-                <Route path="/Agents" element={<Agents />} />
-                
-                <Route path="/Routines" element={<Routines />} />
-                
-                <Route path="/Integrations" element={<Integrations />} />
-                
-                <Route path="/AgentConfig" element={<AgentConfig />} />
-                
-                <Route path="/ProjectReport" element={<ProjectReport />} />
-                
-                <Route path="/BusinessOnboarding" element={<BusinessOnboarding />} />
-                
-                <Route path="/BusinessAgentConfig" element={<BusinessAgentConfig />} />
-                
-                <Route path="/WhatsAppIntegration" element={<WhatsAppIntegration />} />
-                
-                <Route path="/BusinessDashboard" element={<BusinessDashboard />} />
-                
+                <Route path="/Login" element={<Login />} />
+                <Route path="/SignUp" element={<SignUp />} />
                 <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
-                
                 <Route path="/TermsOfService" element={<TermsOfService />} />
-                
-                <Route path="/Profile" element={<Profile />} />
-                
-                <Route path="/StatusPage" element={<StatusPage />} />
-                <Route path="/status" element={<StatusPage />} />
-                
-            </Routes>
-        </Layout>
+            
+            {/* Páginas protegidas - COM LAYOUT */}
+            <Route path="/Settings" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <Settings />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/ClientDashboard" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <ClientDashboard />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/Agents" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <Agents />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/Routines" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <Routines />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/Integrations" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <Integrations />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/AgentConfig" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <AgentConfig />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/ProjectReport" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <ProjectReport />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/BusinessOnboarding" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <BusinessOnboarding />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/BusinessAgentConfig" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <BusinessAgentConfig />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/WhatsAppIntegration" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <WhatsAppIntegration />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/BusinessDashboard" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <BusinessDashboard />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            <Route path="/Profile" element={
+                <ProtectedRoute>
+                    <Layout currentPageName={currentPage}>
+                        <Profile />
+                    </Layout>
+                </ProtectedRoute>
+            } />
+            
+            {/* Páginas que requerem admin - SEM LAYOUT PADRÃO */}
+            <Route path="/Admin" element={
+                <ProtectedRoute requireAdmin={true}>
+                    <Admin />
+                </ProtectedRoute>
+            } />
+        </Routes>
+        </RedirectHandler>
     );
 }
 

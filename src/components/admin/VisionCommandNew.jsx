@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -167,8 +168,102 @@ export default function VisionCommandNew({ adminData, onVoiceCommand }) {
   const [systemLog, setSystemLog] = useState([]);
   // Removed isImmersiveMode state as per new design
 
+  // Definir speakText ANTES do useEffect
+  const speakText = useCallback((text) => {
+    if (!('speechSynthesis' in window) || silentMode) return;
+
+    speechSynthesis.cancel();
+
+    setIsSpeaking(true);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'pt-BR';
+    utterance.rate = 0.9;
+    utterance.pitch = 0.8;
+    utterance.volume = 0.8;
+
+    const voices = speechSynthesis.getVoices();
+    const ptVoice = voices.find(voice => voice.lang.includes('pt'));
+    if (ptVoice) utterance.voice = ptVoice;
+
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    speechSynthesis.speak(utterance);
+  }, [silentMode]);
+
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    const generateSystemLog = () => {
+      const logs = [
+        `Sistema AUTVISION operacional - ${Math.floor(Math.random() * 500) + 200} usuários conectados`,
+        `Processamento neural ativo - Latência: ${Math.floor(Math.random() * 20) + 5}ms`,
+        `Análise preditiva executada - Precisão: ${Math.floor(Math.random() * 10) + 90}%`,
+        `Cache otimizado - Hit rate: ${Math.floor(Math.random() * 8) + 92}%`,
+        `Sincronização com base de conhecimento concluída`,
+        `Monitoramento de agentes ativo - Todos os sistemas funcionais`
+      ];
+      const newLog = {
+        message: logs[Math.floor(Math.random() * logs.length)],
+        timestamp: new Date().toISOString()
+      };
+      setSystemLog(prev => [newLog, ...prev.slice(0, 10)]);
+    };
+
+    const initializeVision = () => {
+      const msg = `Sistema AUTVISION inicializado com sucesso. Central de comando operacional.`;
+      setCurrentMessage(msg);
+      if (!silentMode) {
+        speakText(msg);
+      }
+    };
+
+    const performSystemAnalysis = async () => {
+      setCurrentMessage("Executando análise profunda dos sistemas...");
+
+      try {
+        const analysis = await InvokeLLM({
+          prompt: `Você é o VISION, assistente de IA da AUTVISION. Analise os dados:
+          - Usuários: ${adminData?.users?.length || 0}
+          - Vision Companions: ${adminData?.visions?.length || 0}
+          - Agentes: ${adminData?.agents?.length || 0}
+          - Rotinas: ${adminData?.routines?.length || 0}
+
+          Forneça 3 insights estratégicos em português brasileiro de forma profissional.`,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              insights: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    type: { type: "string" },
+                    message: { type: "string" },
+                    priority: { type: "string" }
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        const newInsights = analysis.insights.map(insight => ({
+          ...insight,
+          timestamp: new Date().toISOString()
+        }));
+
+        setSystemInsights(prev => [...newInsights, ...prev.slice(0, 6)]);
+        setCurrentMessage("Análise completa. Insights estratégicos disponíveis.");
+
+        if (!silentMode) {
+          speakText(`Análise concluída. ${newInsights.length} insights gerados.`);
+        }
+      } catch (error) {
+        console.error("Erro na análise:", error);
+        setCurrentMessage("Erro na análise. Tentando novamente...");
+      }
+    };
 
     initializeVision();
     const analysisInterval = setInterval(performSystemAnalysis, 180000); // 3 min
@@ -177,78 +272,7 @@ export default function VisionCommandNew({ adminData, onVoiceCommand }) {
       clearInterval(analysisInterval);
       clearInterval(logInterval);
     };
-  }, [isAuthenticated]);
-
-  const generateSystemLog = () => {
-    const logs = [
-      `Sistema AUTVISION operacional - ${Math.floor(Math.random() * 500) + 200} usuários conectados`,
-      `Processamento neural ativo - Latência: ${Math.floor(Math.random() * 20) + 5}ms`,
-      `Análise preditiva executada - Precisão: ${Math.floor(Math.random() * 10) + 90}%`,
-      `Cache otimizado - Hit rate: ${Math.floor(Math.random() * 8) + 92}%`,
-      `Sincronização com base de conhecimento concluída`,
-      `Monitoramento de agentes ativo - Todos os sistemas funcionais`
-    ];
-    const newLog = {
-      message: logs[Math.floor(Math.random() * logs.length)],
-      timestamp: new Date().toISOString()
-    };
-    setSystemLog(prev => [newLog, ...prev.slice(0, 10)]);
-  };
-
-  const initializeVision = () => {
-    const msg = `Sistema AUTVISION inicializado com sucesso. Central de comando operacional.`;
-    setCurrentMessage(msg);
-    if (!silentMode) {
-      speakText(msg);
-    }
-  };
-
-  const performSystemAnalysis = async () => {
-    setCurrentMessage("Executando análise profunda dos sistemas...");
-
-    try {
-      const analysis = await InvokeLLM({
-        prompt: `Você é o VISION, assistente de IA da AUTVISION. Analise os dados:
-        - Usuários: ${adminData.users?.length || 0}
-        - Vision Companions: ${adminData.visions?.length || 0}
-        - Agentes: ${adminData.agents?.length || 0}
-        - Rotinas: ${adminData.routines?.length || 0}
-
-        Forneça 3 insights estratégicos em português brasileiro de forma profissional.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            insights: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  type: { type: "string" },
-                  message: { type: "string" },
-                  priority: { type: "string" }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      const newInsights = analysis.insights.map(insight => ({
-        ...insight,
-        timestamp: new Date().toISOString()
-      }));
-
-      setSystemInsights(prev => [...newInsights, ...prev.slice(0, 6)]);
-      setCurrentMessage("Análise completa. Insights estratégicos disponíveis.");
-
-      if (!silentMode) {
-        speakText(`Análise concluída. ${newInsights.length} insights gerados.`);
-      }
-    } catch (error) {
-      console.error("Erro na análise:", error);
-      setCurrentMessage("Erro na análise. Tentando novamente...");
-    }
-  };
+  }, [isAuthenticated, adminData, silentMode, speakText]);
 
   const handleCommand = async (command) => {
     if (!command.trim()) return;
@@ -328,28 +352,6 @@ export default function VisionCommandNew({ adminData, onVoiceCommand }) {
     };
 
     recognition.start();
-  };
-
-  const speakText = (text) => {
-    if (!('speechSynthesis' in window) || silentMode) return;
-
-    speechSynthesis.cancel();
-
-    setIsSpeaking(true);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'pt-BR';
-    utterance.rate = 0.9;
-    utterance.pitch = 0.8;
-    utterance.volume = 0.8;
-
-    const voices = speechSynthesis.getVoices();
-    const ptVoice = voices.find(voice => voice.lang.includes('pt'));
-    if (ptVoice) utterance.voice = ptVoice;
-
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-
-    speechSynthesis.speak(utterance);
   };
 
   const toggleSilentMode = () => {
@@ -734,3 +736,15 @@ export default function VisionCommandNew({ adminData, onVoiceCommand }) {
     </div>
   );
 }
+
+// PropTypes
+CosmicSphere3D.propTypes = {
+  isListening: PropTypes.bool.isRequired,
+  isSpeaking: PropTypes.bool.isRequired,
+  isProcessing: PropTypes.bool.isRequired,
+};
+
+VisionCommandNew.propTypes = {
+  adminData: PropTypes.object,
+  onVoiceCommand: PropTypes.func,
+};
