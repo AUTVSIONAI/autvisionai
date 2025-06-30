@@ -1,5 +1,29 @@
 {
+  "name": "autvision-ai",
+  "version": "1.0.0",
+  "description": "AutVision AI - Sistema de Inteligência Artificial Avançado",
+  "main": "index.js",
+  "scripts": {
+    "build": "cd autvisionai-front && npm ci && npm run build",
+    "dev": "cd autvisionai-front && npm run dev",
+    "start": "cd autvisionai-front && npm run preview",
+    "install-frontend": "cd autvisionai-front && npm install",
+    "install-backend": "cd autvisionai-backend && npm install"
+  },
+  "keywords": [
+    "ai",
+    "dashboard",
+    "react",
+    "vite",
+    "supabase"
+  ],
+  "author": "AutVision AI Team",
+  "license": "MIT",
   "dependencies": {
     "axios": "^1.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
