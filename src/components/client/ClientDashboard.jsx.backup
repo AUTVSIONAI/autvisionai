@@ -1,0 +1,1350 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { 
+  Trophy,
+  Target,
+  Star,
+  Clock,
+  BarChart3,
+  Zap,
+  Users,
+  Sun,
+  Moon,
+  Maximize2,
+  Sparkles,
+  Brain,
+  Eye,
+  Cpu,
+  Wifi,
+  Shield,
+  MessageSquare,
+  Settings,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  Mic,
+  X,
+  MicOff,
+  Power,
+  Heart,
+  Layers,
+  Orbit,
+  Send,
+  User
+} from 'lucide-react';
+import VisionAvatar from './VisionAvatar';
+import MissionsList from './MissionsList';
+import QuickActions from './QuickActions';
+import { InvokeLLM } from '@/api/integrations';
+
+export default function ClientDashboard() {
+  // Estados principais
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+  const [isVisionActive, setIsVisionActive] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [currentVisionState, setCurrentVisionState] = useState(0);
+  const [visionLevel, setVisionLevel] = useState(3);
+  const [visionXP, setVisionXP] = useState(1250);
+  const [nextLevelXP, setNextLevelXP] = useState(2000);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [visionPosition, setVisionPosition] = useState({ x: 0, y: 0 });
+  
+  // Estados da Vision Factory
+  const [isImmersiveMode, setIsImmersiveMode] = useState(false);
+  const [visionCoreConnected, setVisionCoreConnected] = useState(true);
+  const [factoryMode, setFactoryMode] = useState('companion'); // 'companion' | 'factory' | 'admin'
+  const [orbitalRotation, setOrbitalRotation] = useState(0);
+  const [selectedAgentInWorkflow, setSelectedAgentInWorkflow] = useState(null);
+  const [workflowAgents, setWorkflowAgents] = useState([]); // Agentes no fluxo de automação
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [selectedAgentForWorkflow, setSelectedAgentForWorkflow] = useState(null);
+  const [showWorkflowPrompt, setShowWorkflowPrompt] = useState(false);
+
+  // Configuração de tema futurista
+  const themeConfig = isDarkTheme ? {
+    bg: 'bg-gradient-to-br from-gray-950 via-blue-950/10 to-purple-950/10',
+    cardBg: 'from-gray-900/40 to-gray-800/40',
+    text: 'text-white',
+    textSecondary: 'text-gray-300',
+    accent: 'from-blue-400 via-purple-500 to-cyan-400',
+    border: 'border-gray-700/30',
+    agentCard: 'from-gray-800/20 to-gray-900/20',
+    visionGlow: 'shadow-blue-500/20',
+    particles: 'bg-blue-400/20'
+  } : {
+    bg: 'bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30',
+    cardBg: 'from-white/60 to-gray-50/60',
+    text: 'text-gray-900',
+    textSecondary: 'text-gray-600',
+    accent: 'from-blue-600 via-purple-600 to-indigo-600',
+    border: 'border-gray-200/30',
+    agentCard: 'from-white/40 to-gray-50/40',
+    visionGlow: 'shadow-blue-300/30',
+    particles: 'bg-blue-600/10'
+  };
+
+  // Dados do usuário e Vision Factory
+  const user = {
+    name: 'Visionário',
+    visionName: 'ATHENA',
+    visionCoreId: 'VC-001',
+    factoryAccess: true,
+    totalInteractions: 847,
+    streak: 7,
+    achievements: 12,
+    joinDate: '2024-01-15',
+    connectedVisions: 3,
+    workflowsCreated: 15
+  };
+
+  // Vision Core - Controla todos os Vision Companions
+  const visionCore = {
+    id: 'VC-001',
+    status: 'active',
+    connectedUsers: 1247,
+    totalVisions: 3891,
+    factoryUptime: '99.8%',
+    lastSync: new Date().toISOString()
+  };
+
+  // Agentes subordinados ao Vision - Controlados pelo Vision Core
+  const subordinateAgents = [
+    {
+      id: 'ada',
+      name: 'ADA',
+      role: 'Analista de Dados',
+      icon: BarChart3,
+      color: 'text-blue-400',
+      image: '/assets/images/agents/agent-ADA.jpeg',
+      status: 'online',
+      efficiency: 94,
+      tasksCompleted: 234,
+      orbitalPosition: 0,
+      reactionSvg: '📊',
+      specialty: 'Análise Preditiva'
+    },
+    {
+      id: 'guardian',
+      name: 'Guardian',
+      role: 'Proteção Digital',
+      icon: Shield,
+      color: 'text-green-400',
+      image: '/assets/images/agents/agent-Guardian.jpeg',
+      status: 'online',
+      efficiency: 98,
+      tasksCompleted: 156,
+      orbitalPosition: 60,
+      reactionSvg: '🛡️',
+      specialty: 'Segurança Avançada'
+    },
+    {
+      id: 'nova',
+      name: 'Nova',
+      role: 'Criação Inteligente',
+      icon: Sparkles,
+      color: 'text-purple-400',
+      image: '/assets/images/agents/agent-Nova.jpeg',
+      status: 'online',
+      efficiency: 91,
+      tasksCompleted: 189,
+      orbitalPosition: 120,
+      reactionSvg: '✨',
+      specialty: 'Design Generativo'
+    },
+    {
+      id: 'echo',
+      name: 'Echo',
+      role: 'Comunicação',
+      icon: MessageSquare,
+      color: 'text-cyan-400',
+      image: '/assets/images/agents/agent-Echo.jpeg',
+      status: 'online',
+      efficiency: 96,
+      tasksCompleted: 312,
+      orbitalPosition: 180,
+      reactionSvg: '💬',
+      specialty: 'Linguagem Natural'
+    },
+    {
+      id: 'auto',
+      name: 'Auto',
+      role: 'Automação',
+      icon: Cpu,
+      color: 'text-orange-400',
+      image: '/assets/images/agents/agent-Auto.jpeg',
+      status: 'online',
+      efficiency: 97,
+      tasksCompleted: 445,
+      orbitalPosition: 240,
+      reactionSvg: '⚙️',
+      specialty: 'Workflows Inteligentes'
+    },
+    {
+      id: 'social',
+      name: 'Social',
+      role: 'Redes Sociais',
+      icon: Users,
+      color: 'text-pink-400',
+      image: '/assets/images/agents/agent-Social.jpeg',
+      status: 'online',
+      efficiency: 89,
+      tasksCompleted: 278,
+      orbitalPosition: 300,
+      reactionSvg: '🌐',
+      specialty: 'Engajamento Digital'
+    }
+  ];
+
+  // Estados evolutivos do Vision - Usando imagem flutuante
+  const visionStates = [
+    { 
+      image: '/assets/images/vision/vision_flutuante_sem_fundo.png', 
+      state: 'Aguardando', 
+      mood: 'neutral', 
+      duration: 4000,
+      eyeState: 'normal',
+      reactionSvg: '👁️'
+    },
+    { 
+      image: '/assets/images/vision/vision_flutuante_sem_fundo.png', 
+      state: 'Feliz', 
+      mood: 'happy', 
+      duration: 3000,
+      eyeState: 'happy',
+      reactionSvg: '😊'
+    },
+    { 
+      image: '/assets/images/vision/vision_flutuante_sem_fundo.png', 
+      state: 'Processando', 
+      mood: 'thinking', 
+      duration: 5000,
+      eyeState: 'focused',
+      reactionSvg: '🤔'
+    },
+    { 
+      image: '/assets/images/vision/vision_flutuante_sem_fundo.png', 
+      state: 'Confiante', 
+      mood: 'confident', 
+      duration: 3500,
+      eyeState: 'confident',
+      reactionSvg: '💪'
+    },
+    { 
+      image: '/assets/images/vision/vision_flutuante_sem_fundo.png', 
+      state: 'Atento', 
+      mood: 'alert', 
+      duration: 4500,
+      eyeState: 'alert',
+      reactionSvg: '⚡'
+    },
+    { 
+      image: '/assets/images/vision/vision_flutuante_sem_fundo.png', 
+      state: 'Factory Mode', 
+      mood: 'factory', 
+      duration: 6000,
+      eyeState: 'factory',
+      reactionSvg: '🏭'
+    }
+  ];
+
+  // Seguir mouse sutilmente para Vision
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+      
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+      const offsetX = (e.clientX - centerX) * 0.015;
+      const offsetY = (e.clientY - centerY) * 0.015;
+      
+      setVisionPosition({ x: offsetX, y: offsetY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  // Ciclo automático de expressões do Vision
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentVisionState((prev) => (prev + 1) % visionStates.length);
+    }, visionStates[currentVisionState]?.duration || 4000);
+
+    return () => clearInterval(interval);
+  }, [currentVisionState]);
+
+  // Rotação orbital contínua dos agentes no modo imersivo
+  useEffect(() => {
+    if (isImmersiveMode) {
+      const interval = setInterval(() => {
+        setOrbitalRotation(prev => (prev + 0.5) % 360);
+      }, 50);
+      return () => clearInterval(interval);
+    }
+  }, [isImmersiveMode]);
+
+  // Conexão com Vision Core
+  useEffect(() => {
+    const checkVisionCore = () => {
+      // Simular verificação de conexão com Vision Core
+      const isConnected = Math.random() > 0.1; // 90% de uptime
+      setVisionCoreConnected(isConnected);
+    };
+
+    const interval = setInterval(checkVisionCore, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-switch para Factory Mode quando necessário
+  useEffect(() => {
+    if (factoryMode === 'factory' && currentVisionState < 5) {
+      setCurrentVisionState(5); // Factory Mode state
+    }
+  }, [factoryMode]);
+
+  const handleVisionActivation = () => {
+    setIsVisionActive(!isVisionActive);
+    if (!isVisionActive) {
+      setIsListening(true);
+      // Simular ativação por voz
+      setTimeout(() => setIsListening(false), 3000);
+    }
+  };
+
+  // Função para alternar modo imersivo
+  const toggleImmersiveMode = () => {
+    setIsImmersiveMode(!isImmersiveMode);
+    setFactoryMode(isImmersiveMode ? 'companion' : 'factory');
+  };
+
+  // Função para selecionar agente no carrossel orbital
+  const handleAgentSelection = (agent) => {
+    setSelectedAgentForWorkflow(agent);
+    setShowWorkflowPrompt(true);
+    
+    // Vision reage à seleção
+    setCurrentVisionState(1); // Estado feliz
+    
+    // Reset após 3 segundos
+    setTimeout(() => {
+      setShowWorkflowPrompt(false);
+      setSelectedAgentForWorkflow(null);
+    }, 5000);
+  };
+
+  // Função para adicionar agente ao workflow
+  const addAgentToWorkflow = () => {
+    if (selectedAgentForWorkflow) {
+      // Adicionar ao fluxo de automação se não estiver já
+      if (!workflowAgents.find(a => a.id === selectedAgentForWorkflow.id)) {
+        setWorkflowAgents([...workflowAgents, selectedAgentForWorkflow]);
+      }
+      setShowWorkflowPrompt(false);
+      setSelectedAgentForWorkflow(null);
+      
+      // Vision confirma
+      setCurrentVisionState(3); // Estado confiante
+    }
+  };
+
+  // Função para remover agente do fluxo
+  const removeAgentFromWorkflow = (agentId) => {
+    setWorkflowAgents(workflowAgents.filter(a => a.id !== agentId));
+  };
+
+  // Verificar se agente está no fluxo de automação
+  const isAgentInWorkflow = (agentId) => {
+    return workflowAgents.some(agent => agent.id === agentId);
+  };
+
+  // Função para calcular posição orbital
+  const getOrbitalPosition = (agent, radius = 200) => {
+    const angle = (agent.orbitalPosition + orbitalRotation) * (Math.PI / 180);
+    return {
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius
+    };
+  };
+
+  // Funções do Chat
+  // NOTA: VisionChat avançado disponível em /src/components/VisionChat.jsx com LLM integrado
+  const handleSendMessage = async () => {
+    if (chatInput.trim()) {
+      const userMessage = {
+        id: Date.now(),
+        text: chatInput,
+        sender: 'user',
+        timestamp: new Date()
+      };
+      setChatMessages(prev => [...prev, userMessage]);
+      const currentInput = chatInput;
+      setChatInput('');
+      
+      // Adicionar indicador de digitação
+      const typingMessage = {
+        id: Date.now() + 1,
+        text: 'Vision está digitando...',
+        sender: 'vision',
+        timestamp: new Date(),
+        isTyping: true
+      };
+      setChatMessages(prev => [...prev, typingMessage]);
+      
+      // INTEGRAÇÃO VISIONCHAT REAL COM LLM
+      try {
+        console.log('🧠 Enviando mensagem para Vision:', currentInput);
+
+        const response = await InvokeLLM({
+          prompt: currentInput,
+          systemPrompt: `Você é o VISION, assistente inteligente pessoal da plataforma AUTVISION no dashboard do cliente.
+
+Características:
+- Seja útil, preciso e amigável
+- Responda em português brasileiro
+- Use emojis ocasionalmente para ser mais expressivo
+- Ajude com funcionalidades da AUTVISION, agentes, workflows e automações
+- Mantenha respostas concisas mas informativas
+- Foque em produtividade e otimização de processos
+- Você pode coordenar agentes subordinados e executar análises
+
+Contexto: O usuário está no dashboard cliente da AUTVISION, gerenciando agentes inteligentes e workflows. Você é a IA pessoal dele.`,
+          context: {
+            source: 'client-dashboard-chat',
+            conversationLength: chatMessages.length,
+            activeAgents: subordinateAgents.length,
+            workflowActive: workflowAgents.length > 0
+          }
+        });
+
+        setChatMessages(prev => {
+          const filtered = prev.filter(msg => !msg.isTyping);
+          return [...filtered, {
+            id: Date.now() + 2,
+            text: response.content || 'Desculpe, não consegui processar sua mensagem no momento.',
+            sender: 'vision',
+            timestamp: new Date()
+          }];
+        });
+      } catch (error) {
+        console.error('❌ Erro ao comunicar com Vision:', error);
+        
+        setChatMessages(prev => {
+          const filtered = prev.filter(msg => !msg.isTyping);
+          return [...filtered, {
+            id: Date.now() + 2,
+            text: '⚠️ Desculpe, estou com dificuldades técnicas. Tente novamente em alguns instantes.',
+            sender: 'vision',
+            timestamp: new Date()
+          }];
+        });
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'online': return 'bg-green-400';
+      case 'busy': return 'bg-yellow-400';
+      case 'offline': return 'bg-gray-400';
+      default: return 'bg-gray-400';
+    }
+  };
+
+  const getVisionLevelName = (level) => {
+    const levels = {
+      1: 'Iniciante',
+      2: 'Aprendiz', 
+      3: 'Competente',
+      4: 'Avançado',
+      5: 'Expert',
+      6: 'Mestre',
+      7: 'Supremo'
+    };
+    return levels[level] || 'Evoluindo';
+  };
+
+
+
+  // Modo Imersivo - Tela Completa
+  if (isImmersiveMode) {
+    return (
+      <div className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 overflow-hidden">
+        {/* Partículas de Fundo Imersivo */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 rounded-full bg-blue-400/30"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -200, 0],
+                opacity: [0, 1, 0],
+                scale: [0, 1, 0]
+              }}
+              transition={{
+                duration: Math.random() * 15 + 10,
+                repeat: Infinity,
+                delay: Math.random() * 5,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Botão de Saída */}
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          onClick={() => setIsImmersiveMode(false)}
+          className="absolute top-8 right-8 z-60 w-12 h-12 bg-red-500/20 hover:bg-red-500/40 rounded-full flex items-center justify-center text-white border border-red-400/30 backdrop-blur-sm transition-all duration-300"
+        >
+          <X className="w-6 h-6" />
+        </motion.button>
+
+        {/* Vision Central Gigante - Responsivo */}
+        <div className="flex items-center justify-center min-h-screen px-4">
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative"
+            transition={{ duration: 1, ease: "easeOut" }}
+          >
+            {/* Aura Imersiva */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: 'radial-gradient(circle, #3B82F620 0%, transparent 70%)',
+                filter: 'blur(40px)',
+                transform: 'scale(3)'
+              }}
+              animate={{
+                scale: [3, 3.5, 3],
+                opacity: [0.6, 1, 0.6]
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+
+            {/* Vision Gigante - Responsivo */}
+            <motion.div
+              className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full overflow-hidden border-4 border-blue-400/50 shadow-2xl"
+              animate={{
+                scale: [1, 1.1, 1],
+                boxShadow: [
+                  '0 0 60px rgba(59, 130, 246, 0.8)', 
+                  '0 0 100px rgba(59, 130, 246, 1)', 
+                  '0 0 60px rgba(59, 130, 246, 0.8)'
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+            >
+              <img
+                src="/assets/images/vision/vision.PNG"
+                alt="Vision AI - Modo Imersivo"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Agentes Orbitais - Responsivo */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {subordinateAgents.map((agent, index) => {
+            const angle = (index * 360) / subordinateAgents.length + orbitalRotation;
+            const radius = window.innerWidth < 768 ? 200 : 300; // Responsivo
+            const x = Math.cos((angle * Math.PI) / 180) * radius;
+            const y = Math.sin((angle * Math.PI) / 180) * radius;
+            const isInWorkflow = isAgentInWorkflow(agent.id);
+
+            return (
+              <motion.div
+                key={agent.id}
+                className="absolute pointer-events-auto cursor-pointer"
+                style={{
+                  transform: `translate(${x}px, ${y}px)`
+                }}
+                onClick={() => handleAgentSelection(agent)}
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <motion.div
+                  className={`w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-2 shadow-lg backdrop-blur-sm transition-all duration-300 ${
+                    isInWorkflow 
+                      ? 'border-green-400/80 bg-green-900/30' 
+                      : 'border-gray-600/40 bg-gray-800/20'
+                  }`}
+                  animate={isInWorkflow ? {
+                    boxShadow: [
+                      '0 0 20px rgba(34, 197, 94, 0.6)',
+                      '0 0 30px rgba(34, 197, 94, 0.9)',
+                      '0 0 20px rgba(34, 197, 94, 0.6)'
+                    ],
+                    scale: [1, 1.05, 1]
+                  } : {
+                    opacity: [0.4, 0.6, 0.4]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, delay: index * 0.2 }}
+                >
+                  <img
+                    src={agent.image}
+                    alt={agent.name}
+                    className="w-full h-full object-cover"
+                  />
+                </motion.div>
+                
+                {/* Nome do Agente */}
+                <motion.div
+                  className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-white text-sm font-medium bg-black/50 px-2 py-1 rounded backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1 + index * 0.1 }}
+                >
+                  {agent.name}
+                </motion.div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Prompt de Workflow */}
+        <AnimatePresence>
+          {showWorkflowPrompt && selectedAgentForWorkflow && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-70 backdrop-blur-sm"
+            >
+              <motion.div
+                className="bg-gray-800/90 backdrop-blur-md rounded-2xl p-6 md:p-8 max-w-sm md:max-w-md mx-4 border border-blue-400/30"
+                initial={{ y: 50 }}
+                animate={{ y: 0 }}
+              >
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-4 text-center">
+                  {isAgentInWorkflow(selectedAgentForWorkflow.id) ? 'Remover do Workflow?' : 'Adicionar ao Workflow?'}
+                </h3>
+                <p className="text-gray-300 mb-6 text-center text-sm md:text-base">
+                  {isAgentInWorkflow(selectedAgentForWorkflow.id) 
+                    ? <>Deseja remover <span className="text-red-400 font-semibold">{selectedAgentForWorkflow.name}</span> do workflow de automação?</>
+                    : <>Deseja adicionar <span className="text-blue-400 font-semibold">{selectedAgentForWorkflow.name}</span> ao workflow de automação?</>
+                  }
+                </p>
+                <div className="flex space-x-4">
+                  <Button
+                    onClick={() => {
+                      if (isAgentInWorkflow(selectedAgentForWorkflow.id)) {
+                        removeAgentFromWorkflow(selectedAgentForWorkflow.id);
+                      } else {
+                        addAgentToWorkflow(selectedAgentForWorkflow);
+                      }
+                      setShowWorkflowPrompt(false);
+                      setSelectedAgentForWorkflow(null);
+                    }}
+                    className={`flex-1 text-white ${
+                      isAgentInWorkflow(selectedAgentForWorkflow.id)
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {isAgentInWorkflow(selectedAgentForWorkflow.id) ? 'Sim, Remover' : 'Sim, Adicionar'}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowWorkflowPrompt(false);
+                      setSelectedAgentForWorkflow(null);
+                    }}
+                    variant="outline"
+                    className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`min-h-screen ${themeConfig.bg} ${themeConfig.text} transition-all duration-700 relative overflow-x-hidden`}>
+      {/* Partículas de fundo futuristas - Desabilitadas no modo imersivo */}
+      {!isImmersiveMode && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className={`absolute w-1 h-1 ${themeConfig.particles} rounded-full`}
+              animate={{
+                x: [0, Math.random() * 200 - 100],
+                y: [0, Math.random() * 200 - 100],
+                opacity: [0, 0.6, 0],
+                scale: [0, 1, 0]
+              }}
+              transition={{
+                duration: Math.random() * 8 + 6,
+                repeat: Infinity,
+                delay: Math.random() * 4,
+              }}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Header Minimalista */}
+      <div className="relative z-10 flex justify-between items-center p-4 sm:p-6 border-b border-gray-700/20 backdrop-blur-sm">
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          <motion.img 
+            src="/assets/images/autvision-logo.png" 
+            alt="AutVision AI" 
+            className="h-6 sm:h-8 w-auto"
+            whileHover={{ scale: 1.05 }}
+          />
+          <div className="hidden sm:block">
+            <h1 className="text-lg sm:text-xl font-light bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              AutVision AI
+            </h1>
+            <p className={`text-xs sm:text-sm ${themeConfig.textSecondary}`}>Olá, {user.name}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center space-x-2 sm:space-x-6">
+          {/* Status do Vision Core */}
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className={`w-2 h-2 rounded-full ${visionCoreConnected ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
+            <span className={`text-xs ${themeConfig.textSecondary} hidden sm:inline`}>
+              Core {visionCoreConnected ? 'Conectado' : 'Desconectado'}
+            </span>
+          </div>
+
+          {/* Status do Vision */}
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className={`w-2 h-2 rounded-full ${isVisionActive ? 'bg-green-400' : 'bg-gray-400'} animate-pulse`}></div>
+            <span className={`text-xs ${themeConfig.textSecondary} hidden sm:inline`}>
+              {isVisionActive ? 'Vision Ativo' : 'Vision Inativo'}
+            </span>
+          </div>
+
+          {/* Modo Factory */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleImmersiveMode}
+            className={`text-xs px-3 py-1 rounded-full transition-all ${
+              isImmersiveMode 
+                ? 'bg-purple-500/20 text-purple-400 border border-purple-400/30' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <Layers className="h-3 w-3 mr-1" />
+            {isImmersiveMode ? 'Factory' : 'Companion'}
+          </Button>
+          
+          {/* Controles */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <Sun className="h-4 w-4 text-gray-400" />
+            <Switch
+              checked={isDarkTheme}
+              onCheckedChange={setIsDarkTheme}
+              className="data-[state=checked]:bg-blue-600"
+            />
+            <Moon className="h-4 w-4 text-blue-400" />
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 p-4 sm:p-8 space-y-4 sm:space-y-8">
+        {/* Vision Protagonista Central - Flutuante Livre */}
+        <div className="relative flex flex-col items-center justify-center min-h-[500px] sm:min-h-[700px] space-y-4 sm:space-y-8">
+          {/* Partículas Flutuantes - Desabilitadas no modo imersivo */}
+          {!isImmersiveMode && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {[...Array(12)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className={`absolute w-2 h-2 ${themeConfig.particles} rounded-full`}
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                  }}
+                  animate={{
+                    y: [-30, 30, -30],
+                    x: [-15, 15, -15],
+                    opacity: [0.2, 0.8, 0.2]
+                  }}
+                  transition={{
+                    duration: 4 + Math.random() * 3,
+                    repeat: Infinity,
+                    delay: Math.random() * 3
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Vision Principal - Flutuante e Maior */}
+          <motion.div
+            className="relative z-10 cursor-pointer"
+            onClick={() => setIsImmersiveMode(!isImmersiveMode)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            animate={{
+              y: isVisionActive ? [-15, 15, -15] : [-8, 8, -8],
+              rotateY: isListening ? [0, 5, -5, 0] : 0
+            }}
+            transition={{
+              y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+              rotateY: { duration: 2, repeat: isListening ? Infinity : 0 }
+            }}
+          >
+            {/* Avatar do Vision - Muito Maior */}
+            <div className="relative mx-auto w-96 h-96">
+              {/* Aura de energia */}
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                animate={{
+                  boxShadow: isVisionActive 
+                    ? ['0 0 60px rgba(59, 130, 246, 0.6)', '0 0 120px rgba(59, 130, 246, 1)', '0 0 60px rgba(59, 130, 246, 0.6)']
+                    : '0 0 50px rgba(59, 130, 246, 0.5)'
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+              
+              {/* Imagem do Vision */}
+              <motion.img
+                key={currentVisionState}
+                src="/assets/images/vision/vision.PNG"
+                alt="Vision AI"
+                className="w-full h-full object-contain filter drop-shadow-2xl"
+                animate={{
+                  scale: isVisionActive ? [1, 1.12, 1] : [1, 1.06, 1],
+                  filter: isVisionActive 
+                    ? ['drop-shadow(0 0 50px rgba(59, 130, 246, 0.8))', 'drop-shadow(0 0 80px rgba(59, 130, 246, 1.2))', 'drop-shadow(0 0 50px rgba(59, 130, 246, 0.8))']
+                    : 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.6))'
+                }}
+                transition={{
+                  scale: { duration: 3, repeat: Infinity },
+                  filter: { duration: 3, repeat: Infinity }
+                }}
+              />
+              
+              {/* Indicador de escuta */}
+              {isListening && (
+                <motion.div
+                  className="absolute inset-0 border-4 border-green-400 rounded-full"
+                  animate={{ scale: [1, 1.25, 1], opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+              )}
+              
+              {/* Status visual do Vision Core */}
+              <motion.div
+                className={`absolute top-8 right-8 w-12 h-12 rounded-full ${
+                  visionCoreConnected 
+                    ? (isVisionActive ? 'bg-green-400' : 'bg-blue-400') 
+                    : 'bg-red-400'
+                } shadow-lg border-2 border-white/30`}
+                animate={{ 
+                  scale: isVisionActive ? [1, 1.4, 1] : 1,
+                  boxShadow: visionCoreConnected 
+                    ? '0 0 30px rgba(59, 130, 246, 0.8)' 
+                    : '0 0 30px rgba(239, 68, 68, 0.8)'
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {/* Indicador de Factory Mode */}
+                {factoryMode === 'factory' && (
+                  <motion.div
+                    className="absolute inset-0 border-2 border-purple-400 rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  />
+                )}
+              </motion.div>
+            </div>
+            
+            {/* Nome e Status do Vision */}
+            <div className="text-center mt-6 space-y-2">
+              <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent">
+                {user.visionName}
+              </h2>
+              <p className={`text-xl ${themeConfig.textSecondary} capitalize`}>
+                {visionStates[currentVisionState]?.state}
+              </p>
+              
+              {/* Nível compacto */}
+              <div className="flex items-center justify-center space-x-4 text-sm">
+                <span className={`${themeConfig.textSecondary}`}>Nível {visionLevel}</span>
+                <span className={`font-medium ${themeConfig.text}`}>{getVisionLevelName(visionLevel)}</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Chat Interface */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="w-full max-w-2xl px-4 sm:px-0"
+          >
+            <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} backdrop-blur-xl rounded-2xl`}>
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-3 sm:space-y-4">
+                  {/* Área de Chat */}
+                  <div className={`min-h-[100px] sm:min-h-[120px] max-h-[180px] sm:max-h-[200px] overflow-y-auto p-3 sm:p-4 rounded-xl ${isDarkTheme ? 'bg-gray-800/30' : 'bg-white/30'} border ${themeConfig.border}`}>
+                    <div className="space-y-3">
+                      {/* Mensagem de boas-vindas */}
+                      {chatMessages.length === 0 && (
+                        <div className="flex items-start space-x-3">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                            <Brain className="h-4 w-4 text-white" />
+                          </div>
+                          <div className={`flex-1 p-3 rounded-lg ${isDarkTheme ? 'bg-blue-900/30' : 'bg-blue-100/50'} border border-blue-400/20`}>
+                            <p className={`text-sm ${themeConfig.text}`}>
+                              Olá! Sou {user.visionName}, seu assistente de IA. Como posso ajudá-lo hoje?
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Mensagens do Chat */}
+                      {chatMessages.map((message) => (
+                        <div key={message.id} className={`flex items-start space-x-3 ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            message.sender === 'user' 
+                              ? 'bg-gradient-to-r from-green-400 to-blue-500' 
+                              : 'bg-gradient-to-r from-blue-400 to-purple-500'
+                          }`}>
+                            {message.sender === 'user' ? (
+                              <User className="h-4 w-4 text-white" />
+                            ) : (
+                              <Brain className={`h-4 w-4 text-white ${message.isTyping ? 'animate-pulse' : ''}`} />
+                            )}
+                          </div>
+                          <div className={`flex-1 p-3 rounded-lg border ${
+                            message.sender === 'user'
+                              ? `${isDarkTheme ? 'bg-green-900/30' : 'bg-green-100/50'} border-green-400/20`
+                              : `${isDarkTheme ? 'bg-blue-900/30' : 'bg-blue-100/50'} border-blue-400/20`
+                          }`}>
+                            <p className={`text-sm ${themeConfig.text} ${message.isTyping ? 'italic' : ''}`}>
+                              {message.text}
+                              {message.isTyping && (
+                                <span className="ml-2">
+                                  <span className="animate-bounce inline-block">.</span>
+                                  <span className="animate-bounce inline-block" style={{animationDelay: '0.1s'}}>.</span>
+                                  <span className="animate-bounce inline-block" style={{animationDelay: '0.2s'}}>.</span>
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Input de Chat */}
+                  <div className="flex space-x-3">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Digite sua mensagem..."
+                        className={`w-full p-2 sm:p-3 text-sm sm:text-base rounded-xl ${isDarkTheme ? 'bg-gray-800/50 text-white' : 'bg-white/50 text-gray-900'} border ${themeConfig.border} focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-all`}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!chatInput.trim()}
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 ${
+                        chatInput.trim()
+                          ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600'
+                          : 'bg-gray-400/50 cursor-not-allowed'
+                      }`}
+                    >
+                      <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </Button>
+                    <Button
+                      onClick={() => setIsVisionActive(!isVisionActive)}
+                      className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl transition-all duration-300 ${
+                        isVisionActive 
+                          ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600' 
+                          : 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600'
+                      }`}
+                    >
+                      {isVisionActive ? <MicOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Mic className="h-4 w-4 sm:h-5 sm:w-5" />}
+                    </Button>
+                  </div>
+                  
+                  {/* Status de escuta */}
+                  <AnimatePresence>
+                    {isListening && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="flex items-center justify-center space-x-2 p-2 bg-green-500/20 border border-green-400/30 rounded-xl"
+                      >
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          <Mic className="h-4 w-4 text-green-400" />
+                        </motion.div>
+                        <span className="text-sm text-green-300 font-medium">Escutando...</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Stats Minimalistas */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto px-4 sm:px-0">
+          <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} backdrop-blur-sm hover:scale-105 transition-transform`}>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-400 mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold">{user.achievements}</p>
+              <p className={`text-xs ${themeConfig.textSecondary}`}>Conquistas</p>
+            </CardContent>
+          </Card>
+
+          <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} backdrop-blur-sm hover:scale-105 transition-transform`}>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400 mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold">{user.totalInteractions}</p>
+              <p className={`text-xs ${themeConfig.textSecondary}`}>Interações</p>
+            </CardContent>
+          </Card>
+
+          <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} backdrop-blur-sm hover:scale-105 transition-transform`}>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-orange-400 mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold">{user.streak}</p>
+              <p className={`text-xs ${themeConfig.textSecondary}`}>Dias Seguidos</p>
+            </CardContent>
+          </Card>
+
+          <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} backdrop-blur-sm hover:scale-105 transition-transform`}>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <Heart className="h-5 w-5 sm:h-6 sm:w-6 text-pink-400 mx-auto mb-2" />
+              <p className="text-xl sm:text-2xl font-bold">{visionLevel}</p>
+              <p className={`text-xs ${themeConfig.textSecondary}`}>Nível Vision</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Modo Imersivo - Carrossel Orbital ou Grid de Agentes */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-0">
+          {isImmersiveMode ? (
+            /* Modo Imersivo - Vision Factory com Carrossel Orbital */
+            <div className="relative h-80 sm:h-96 flex items-center justify-center">
+              <Card className={`absolute inset-0 bg-gradient-to-br from-gray-950/98 to-black/95 border border-gray-800/60 backdrop-blur-md rounded-3xl overflow-hidden`}>
+                <CardContent className="relative h-full p-4 sm:p-8">
+                  {/* Título do Factory Mode */}
+                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+                    <div className="flex items-center space-x-2 text-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Layers className="h-5 w-5 text-purple-400" />
+                      </motion.div>
+                      <h3 className="text-sm sm:text-lg font-semibold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                        Vision Factory - Modo Imersivo
+                      </h3>
+                    </div>
+                    <p className={`text-xs ${themeConfig.textSecondary} mt-1 hidden sm:block`}>
+                      Clique em um agente para adicioná-lo ao workflow
+                    </p>
+                  </div>
+
+                  {/* Carrossel Orbital de Agentes */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {subordinateAgents.map((agent, index) => {
+                      const position = getOrbitalPosition(agent, 150);
+                      const isSelected = selectedAgentForWorkflow?.id === agent.id;
+                      
+                      return (
+                        <div
+                          key={agent.id}
+                          className="absolute cursor-pointer"
+                          style={{
+                            left: `calc(50% + ${position.x}px)`,
+                            top: `calc(50% + ${position.y}px)`,
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                          onClick={() => handleAgentSelection(agent)}
+                        >
+                          <div
+                            className={`relative w-16 h-16 rounded-full overflow-hidden border-3 ${
+                              isAgentInWorkflow(agent.id)
+                                ? 'border-cyan-400 shadow-cyan-400/50 shadow-lg' 
+                                : isSelected 
+                                ? 'border-yellow-400 shadow-yellow-400/50 shadow-lg' 
+                                : 'border-gray-600/50'
+                            }`}
+                            style={{
+                              opacity: isAgentInWorkflow(agent.id) ? 1 : 0.7,
+                              boxShadow: isAgentInWorkflow(agent.id)
+                                ? '0 0 25px rgba(34, 211, 238, 0.6)'
+                                : '0 0 5px rgba(59, 130, 246, 0.2)'
+                            }}
+                          >
+                            <img 
+                              src={agent.image} 
+                              alt={agent.name}
+                              className="w-full h-full object-cover"
+                            />
+                            
+                            {/* Reação SVG do Agente */}
+                            <div className="absolute -top-2 -right-2 text-lg">
+                              {agent.reactionSvg}
+                            </div>
+                            
+                            {/* Status do Agente */}
+                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${getStatusColor(agent.status)} rounded-full border-2 border-white`}></div>
+                          </div>
+                          
+                          {/* Nome do Agente */}
+                          <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-center">
+                            <p className={`text-xs font-medium ${themeConfig.text} whitespace-nowrap`}>{agent.name}</p>
+                            <p className={`text-xs ${themeConfig.textSecondary} whitespace-nowrap`}>{agent.specialty}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Prompt de Workflow */}
+                  <AnimatePresence>
+                    {showWorkflowPrompt && selectedAgentForWorkflow && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-30"
+                      >
+                        <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border border-yellow-400/50 backdrop-blur-xl p-4 max-w-sm`}>
+                          <div className="text-center space-y-3">
+                            <div className="flex items-center justify-center space-x-2">
+                              <img 
+                                src={selectedAgentForWorkflow.image} 
+                                alt={selectedAgentForWorkflow.name}
+                                className="w-8 h-8 rounded-full"
+                              />
+                              <span className="text-yellow-400 text-lg">{selectedAgentForWorkflow.reactionSvg}</span>
+                            </div>
+                            <p className={`text-sm ${themeConfig.text}`}>
+                              <span className="text-blue-400 font-semibold">{user.visionName}</span> detectou:
+                            </p>
+                            <p className={`text-xs ${themeConfig.textSecondary}`}>
+                              {isAgentInWorkflow(selectedAgentForWorkflow.id) 
+                                ? `"${selectedAgentForWorkflow.name} já está conectado. Deseja desconectar a conexão neural?"`
+                                : `"Estabelecer conexão neural com ${selectedAgentForWorkflow.name} para ${selectedAgentForWorkflow.specialty}?"`
+                              }
+                            </p>
+                            <div className="flex space-x-2">
+                              <Button 
+                                size="sm" 
+                                onClick={() => {
+                                  if (isAgentInWorkflow(selectedAgentForWorkflow.id)) {
+                                    removeAgentFromWorkflow(selectedAgentForWorkflow.id);
+                                  } else {
+                                    addAgentToWorkflow();
+                                  }
+                                  setShowWorkflowPrompt(false);
+                                  setSelectedAgentForWorkflow(null);
+                                }}
+                                className={`text-xs ${
+                                  isAgentInWorkflow(selectedAgentForWorkflow.id)
+                                    ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600'
+                                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600'
+                                }`}
+                              >
+                                {isAgentInWorkflow(selectedAgentForWorkflow.id) ? '⚡ Desconectar' : '🔗 Conectar'}
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                onClick={() => {
+                                  setShowWorkflowPrompt(false);
+                                  setSelectedAgentForWorkflow(null);
+                                }}
+                                className="text-xs"
+                              >
+                                ✗ Cancelar
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            /* Modo Companion - Grid Tradicional */
+            <Card className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} backdrop-blur-sm`}>
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="flex items-center justify-center space-x-2 text-xl">
+                  <Orbit className="h-5 w-5 text-purple-400" />
+                  <span>Agentes Subordinados</span>
+                </CardTitle>
+                <p className={`text-sm ${themeConfig.textSecondary}`}>Equipe especializada coordenada pelo seu Vision</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {subordinateAgents.map((agent, index) => (
+                    <motion.div
+                      key={agent.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.02, y: -5 }}
+                      className={`p-3 sm:p-4 rounded-xl bg-gradient-to-br ${themeConfig.agentCard} border ${themeConfig.border} cursor-pointer transition-all duration-300 hover:shadow-lg`}
+                      onClick={() => setSelectedAgent(agent)}
+                    >
+                      <div className="text-center space-y-3">
+                        <div className="relative mx-auto w-12 h-12">
+                          <img 
+                            src={agent.image} 
+                            alt={agent.name}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                          <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${getStatusColor(agent.status)} rounded-full border border-gray-800`}></div>
+                          <div className="absolute -top-1 -right-1 text-sm">{agent.reactionSvg}</div>
+                        </div>
+                        
+                        <div>
+                          <h3 className="font-semibold text-sm">{agent.name}</h3>
+                          <p className={`text-xs ${themeConfig.textSecondary}`}>{agent.role}</p>
+                          <p className={`text-xs ${themeConfig.textSecondary} font-medium`}>{agent.specialty}</p>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className={themeConfig.textSecondary}>Eficiência</span>
+                            <span className="font-medium">{agent.efficiency}%</span>
+                          </div>
+                          <div className={`h-1 ${isDarkTheme ? 'bg-gray-700' : 'bg-gray-200'} rounded-full overflow-hidden`}>
+                            <div 
+                              className="h-full bg-gradient-to-r from-green-400 to-blue-400 rounded-full"
+                              style={{ width: `${agent.efficiency}%` }}
+                            />
+                          </div>
+                          <p className={`text-xs ${themeConfig.textSecondary}`}>
+                            {agent.tasksCompleted} tarefas
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Modal de Agente Selecionado */}
+        <AnimatePresence>
+          {selectedAgent && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+              onClick={() => setSelectedAgent(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className={`bg-gradient-to-br ${themeConfig.cardBg} border ${themeConfig.border} rounded-2xl p-6 max-w-md w-full backdrop-blur-xl`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center space-y-4">
+                  <div className="relative mx-auto w-20 h-20">
+                    <img 
+                      src={selectedAgent.image} 
+                      alt={selectedAgent.name}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                    <selectedAgent.icon className={`absolute -bottom-2 -right-2 w-6 h-6 ${selectedAgent.color} bg-gray-900 rounded-full p-1`} />
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-xl font-bold">{selectedAgent.name}</h2>
+                    <p className={`${themeConfig.textSecondary}`}>{selectedAgent.role}</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className={themeConfig.textSecondary}>Eficiência:</span>
+                      <span className="font-semibold">{selectedAgent.efficiency}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={themeConfig.textSecondary}>Tarefas:</span>
+                      <span className="font-semibold">{selectedAgent.tasksCompleted}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className={themeConfig.textSecondary}>Status:</span>
+                      <Badge className={`${selectedAgent.status === 'online' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                        {selectedAgent.status === 'online' ? 'Online' : 'Ocupado'}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2 pt-4">
+                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                      Conversar com {selectedAgent.name}
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={() => setSelectedAgent(null)}>
+                      Fechar
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );}
+}

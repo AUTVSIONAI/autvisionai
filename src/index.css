@@ -1,0 +1,570 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 222.2 47.4% 11.2%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 224.3 76.3% 48%;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ===== ADMIN PANEL LAYOUT FIXES ===== */
+
+/* Container principal do painel admin */
+.admin-panel-container {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  width: 100vw;
+  max-width: 100vw;
+}
+
+/* Área de conteúdo principal */
+.admin-content-area {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-width: 0;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Container para conteúdo admin - FORÇA LARGURA TOTAL */
+.admin-full-width {
+  max-width: none !important;
+  width: 100% !important;
+  flex: 1;
+  min-width: 0;
+  padding: 1rem !important;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Força o main content area expandir completamente */
+.admin-panel-container > div:last-child {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ===== FORÇA TABS CONTENT LARGURA TOTAL ===== */
+
+.admin-panel-container [data-radix-tabs-content],
+.admin-panel-container [role="tabpanel"] {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: auto !important;
+  display: block !important;
+  flex: 1 !important;
+}
+
+.admin-panel-container [role="tabpanel"] > *,
+.admin-panel-container [data-radix-tabs-content] > * {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* ===== FORÇA GRIDS E TABELAS LARGURA TOTAL ===== */
+
+.admin-full-width .grid,
+.admin-panel-container .grid,
+.admin-content-area .grid {
+  width: 100% !important;
+  max-width: none !important;
+  display: grid !important;
+}
+
+.admin-full-width table,
+.admin-panel-container table,
+.admin-content-area table {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+}
+
+.admin-full-width .card,
+.admin-panel-container .card,
+.admin-content-area .card {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* ===== REMOVE LIMITAÇÕES DE LARGURA TAILWIND ===== */
+
+.admin-full-width .max-w-sm,
+.admin-full-width .max-w-md,
+.admin-full-width .max-w-lg,
+.admin-full-width .max-w-xl,
+.admin-full-width .max-w-2xl,
+.admin-full-width .max-w-3xl,
+.admin-full-width .max-w-4xl,
+.admin-full-width .max-w-5xl,
+.admin-full-width .max-w-6xl,
+.admin-full-width .max-w-7xl,
+.admin-panel-container .max-w-sm,
+.admin-panel-container .max-w-md,
+.admin-panel-container .max-w-lg,
+.admin-panel-container .max-w-xl,
+.admin-panel-container .max-w-2xl,
+.admin-panel-container .max-w-3xl,
+.admin-panel-container .max-w-4xl,
+.admin-panel-container .max-w-5xl,
+.admin-panel-container .max-w-6xl,
+.admin-panel-container .max-w-7xl {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* ===== FORÇA CONTAINERS SPACE-Y ===== */
+
+.admin-full-width .space-y-6,
+.admin-full-width .space-y-8,
+.admin-panel-container .space-y-6,
+.admin-panel-container .space-y-8 {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+.admin-full-width .space-y-6 > *,
+.admin-panel-container .space-y-6 > * {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* ===== OVERFLOW FIXES ===== */
+
+.admin-full-width .overflow-x-auto,
+.admin-panel-container .overflow-x-auto {
+  width: 100% !important;
+  overflow-x: auto !important;
+}
+
+/* Remove padding/margin que limitam largura - APENAS no contexto necessário */
+.admin-full-width main,
+.admin-panel-container main {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+.admin-full-width main > *,
+.admin-panel-container main > * {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* ===== DESKTOP RULES - CORRIGIDO ===== */
+@media (min-width: 1024px) {
+  /* Força apenas o conteúdo principal, não o container todo */
+  .admin-full-width main,
+  .admin-content-area main {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* Remove limitações apenas em containers de conteúdo */
+  .admin-full-width main .container,
+  .admin-panel-container main .container {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .admin-full-width .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+  
+  .admin-full-width .lg\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  
+  .admin-full-width .xl\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* REMOVIDO - esta regra estava quebrando no desktop */
+
+/* ===== COMPONENTES ESPECÍFICOS ===== */
+
+.admin-full-width .agents-table,
+.admin-full-width .agents-grid,
+.admin-full-width .affiliates-table,
+.admin-full-width .affiliates-grid,
+.admin-full-width .routines-table,
+.admin-full-width .routines-grid,
+.admin-full-width .integrations-table,
+.admin-full-width .integrations-grid,
+.admin-full-width .business-table,
+.admin-full-width .business-grid,
+.admin-full-width .mcp-table,
+.admin-full-width .mcp-grid,
+.admin-full-width .n8n-table,
+.admin-full-width .n8n-grid {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 100% !important;
+}
+
+/* ===== SIDEBAR DARK THEME ===== */
+.dark .admin-sidebar {
+  --sidebar-background: 17 24 39;
+  --sidebar-foreground: 226 232 240;
+  --sidebar-primary: 59 130 246;
+  --sidebar-primary-foreground: 255 255 255;
+  --sidebar-accent: 55 65 81;
+  --sidebar-accent-foreground: 226 232 240;
+  --sidebar-border: 55 65 81;
+  --sidebar-ring: 59 130 246;
+}
+
+/* ===== REGRAS SUPER ESPECÍFICAS PARA FORÇAR LARGURA TOTAL ===== */
+
+/* COMENTADO TEMPORARIAMENTE - regras muito agressivas
+/* Força TODOS os elementos do admin a ocuparem largura total */
+/* .admin-panel-container *,
+.admin-content-area *,
+.admin-full-width * {
+  box-sizing: border-box !important;
+} */
+
+/* Força containers principais - SEM quebrar sidebar */
+.admin-panel-container main .space-y-6,
+.admin-panel-container main .space-y-8,
+.admin-panel-container main > div,
+.admin-content-area > div:not(.sidebar),
+.admin-full-width > div:not(.sidebar) {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+
+/* Força motion divs */
+.admin-panel-container [style*="opacity"],
+.admin-panel-container [style*="transform"],
+.admin-full-width [style*="opacity"],
+.admin-full-width [style*="transform"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força especificamente para Agentes */
+.admin-panel-container *[class*="agent"],
+.admin-full-width *[class*="agent"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força especificamente para Afiliados */
+.admin-panel-container *[class*="affiliate"],
+.admin-full-width *[class*="affiliate"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força especificamente para Rotinas */
+.admin-panel-container *[class*="routine"],
+.admin-full-width *[class*="routine"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força especificamente para Integrações */
+.admin-panel-container *[class*="integration"],
+.admin-full-width *[class*="integration"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força especificamente para Business e MCP */
+.admin-panel-container *[class*="business"],
+.admin-panel-container *[class*="mcp"],
+.admin-panel-container *[class*="n8n"],
+.admin-full-width *[class*="business"],
+.admin-full-width *[class*="mcp"],
+.admin-full-width *[class*="n8n"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Remove ALGUMAS limitações de largura do Tailwind - SEM quebrar layout */
+.admin-panel-container main [class*="max-w"],
+.admin-full-width main [class*="max-w"],
+.admin-content-area main [class*="max-w"] {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Força containers flexbox - APENAS no conteúdo principal */
+.admin-panel-container main [class*="flex"],
+.admin-full-width main [class*="flex"] {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força todos os divs diretos - APENAS no conteúdo principal */
+.admin-panel-container main > div > div,
+.admin-full-width main > div > div {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Força header e content areas - APENAS no conteúdo principal */
+.admin-panel-container main,
+.admin-panel-container main section,
+.admin-full-width main,
+.admin-full-width main section {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* FORÇA SUPER ESPECÍFICO PARA DESKTOP - COMENTADO TEMPORARIAMENTE */
+/* @media (min-width: 1024px) {
+  .admin-panel-container,
+  .admin-content-area,
+  .admin_full-width,
+  .admin-panel-container *,
+  .admin-content-area *,
+  .admin-full-width * {
+    max-width: none !important;
+  }
+  
+  .admin-panel-container .grid,
+  .admin-panel-container .space-y-6,
+  .admin-panel-container .space-y-8,
+  .admin-full-width .grid,
+  .admin-full-width .space-y-6,
+  .admin-full-width .space-y-8 {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  /* Força containers específicos do desktop */
+  /* .admin-panel-container > div,
+  .admin-content-area > div,
+  .admin-full-width > div {
+    width: 100% !important;
+    max-width: none !important;
+    flex: 1 !important;
+  }
+} */
+
+/* COMENTADO TEMPORARIAMENTE - OVERRIDE ABSOLUTO muito agressivo
+/* Regra que sobrescreve QUALQUER limitação */
+/* .admin-panel-container *:not(svg):not(path):not(circle):not(rect),
+.admin-content-area *:not(svg):not(path):not(circle):not(rect),
+.admin-full-width *:not(svg):not(path):not(circle):not(rect) {
+  max-width: none !important;
+} */
+
+/* Força containers principais com prioridade máxima */
+/* html body .admin-panel-container,
+html body .admin-content-area,
+html body .admin-full-width {
+  width: 100% !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+} */
+
+/* Força todos os filhos diretos com prioridade máxima */
+/* html body .admin-panel-container > *,
+html body .admin-content-area > *,
+html body .admin-full-width > * {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 !important;
+} */
+
+/* Remove qualquer limitação inline style */
+.admin-panel-container [style*="max-width"],
+.admin-full-width [style*="max-width"] {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Força especificamente para telas grandes - REMOVIDO */
+
+/* DEBUG: Bordas removidas para layout limpo */
+/* .admin-panel-container,
+.admin-panel-container * {
+  border: 2px solid red !important;
+  box-shadow: 0 0 0 2px red !important;
+}
+
+.admin-full-width,
+.admin-full-width *,
+.admin-content-area,
+.admin-content-area * {
+  border: 2px solid blue !important;
+  box-shadow: 0 0 0 2px blue !important;
+} */
+
+/* CSS CORRIGIDO: Layout do admin sem quebrar a estrutura */
+html, body {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* REMOVIDO: overflow-y também não pode ser hidden para permitir scroll */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  /* REMOVIDO: height: 100vh e overflow: hidden para permitir scroll */
+}
+
+/* Container principal do painel admin - ESPECÍFICO PARA ADMIN */
+.admin-panel-container {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  width: 100vw;
+  max-width: 100vw;
+}
+
+/* Força #root para admin apenas */
+.admin-panel-container #root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Área de conteúdo - 100% disponível sem quebrar layout */
+.admin-full-width,
+.admin-content-area {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 !important;
+}
+
+/* Força largura total apenas em contexto admin SEM quebrar sidebar */
+.admin-panel-container main *,
+.admin-full-width > *:not(.sidebar),
+.admin-content-area > *:not(.sidebar) {
+  max-width: none !important;
+}
+
+/* Remove limitações do Tailwind apenas no conteúdo principal */
+.admin-panel-container main .max-w-7xl,
+.admin-full-width .max-w-7xl,
+.admin-content-area .max-w-7xl {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Para desktop - força expansão apenas do conteúdo SEM quebrar estrutura */
+@media (min-width: 1024px) {
+  .admin-panel-container main,
+  .admin-full-width main,
+  .admin-content-area main {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 2rem !important;
+  }
+  
+  /* NÃO força o container principal, apenas o conteúdo */
+  .admin-full-width,
+  .admin-content-area {
+    flex: 1 !important;
+  }
+}
+
+/* REMOVIDO - voltando ao funcionamento original */
+
+/* DESKTOP ESPECÍFICO: Telas grandes */
+@media (min-width: 1200px) {
+  .admin-panel-container main {
+    padding: 2rem !important;
+  }
+  
+  /* Garante que grids e tabelas usem todo o espaço */
+  .admin-panel-container main .grid,
+  .admin-panel-container main table,
+  .admin-panel-container main .card {
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
