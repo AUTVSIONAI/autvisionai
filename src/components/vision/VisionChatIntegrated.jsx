@@ -252,7 +252,7 @@ Contexto: O usuário está interagindo através do chat integrado da AUTVISION.`
                   Vision AI
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-0">{isLoading ? 'Processando...' : isListening ? 'Escutando...' : 'Pronto para ajudar'}
+              <p className="text-xs text-gray-400 mt-0">
                 {isLoading ? 'Processando...' : isListening ? 'Escutando...' : 'Pronto para ajudar'}
               </p>
             </div>
