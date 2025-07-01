@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,12 @@ export default function ClientDashboard() {
   const [selectedAgent, setSelectedAgent] = useState(null);
   
   // Agentes disponíveis vindos do painel admin
-  const availableAgents = globalData.agents || [];
+  const availableAgents = useMemo(() => globalData.agents || [], [globalData.agents]);
+  
+  // 🔍 DEBUG: Log para verificar dados dos agentes
+  console.log('🤖 ClientDashboard - availableAgents:', availableAgents);
+  console.log('🤖 ClientDashboard - availableAgents.length:', availableAgents.length);
+  console.log('🤖 ClientDashboard - globalData completo:', globalData);
   
   // Estados do usuário
   const [user] = useState({
@@ -58,12 +63,12 @@ export default function ClientDashboard() {
     visionCoreId: 'VC-001'
   });
 
-  // Configuração do Vision Core
+  // Configuração do Vision Core - DADOS DINÂMICOS
   const visionCore = {
     status: visionCoreConnected ? 'online' : 'offline',
     version: '2.1.4',
     uptime: '72h 15m',
-    activeAgents: 3,
+    activeAgents: availableAgents.length, // 🔥 CORREÇÃO: usar dados reais do backend
     tasksCompleted: 847,
     efficiency: 94
   };

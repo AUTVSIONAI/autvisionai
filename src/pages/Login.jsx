@@ -59,11 +59,11 @@ export default function LoginPage() {
       console.log('🔀 Redirecionando usuário:', { 
         email: formData.email, 
         isAdmin,
-        destination: isAdmin ? '/admin' : '/client'
+        destination: isAdmin ? '/Admin' : '/client'
       })
       
       // Redirecionar baseado no tipo de usuário
-      navigate(isAdmin ? '/admin' : '/client')
+      navigate(isAdmin ? '/Admin' : '/client')
     } catch (err) {
       console.error('Erro de login:', err)
     }
@@ -88,11 +88,11 @@ export default function LoginPage() {
       console.log('🔀 Redirecionando usuário social:', { 
         email: userEmail, 
         isAdmin,
-        destination: isAdmin ? '/admin' : '/client'
+        destination: isAdmin ? '/Admin' : '/client'
       })
       
       // Redirecionar baseado no tipo de usuário
-      navigate(isAdmin ? '/admin' : '/client')
+      navigate(isAdmin ? '/Admin' : '/client')
     } catch (err) {
       console.error('Erro no login social:', err)
     }
