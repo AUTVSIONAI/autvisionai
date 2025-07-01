@@ -12,13 +12,18 @@ import { Input } from "@/components/ui/input";
 import { Send, Loader2, Brain, Mic, Volume2, VolumeX, Sparkles, MessageSquare } from "lucide-react";
 import { InvokeLLM } from "@/api/integrations";
 import ReactiveVisionAgent from './ReactiveVisionAgent';
+import VisionLearningService from '@/services/visionLearningService';
+import VisionWebSearchService from '@/services/visionWebSearchService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function VisionChatIntegrated({ 
   className = "",
   size = "normal", // "compact", "normal", "large"
   showAvatar = true,
-  autoSpeak = true
+  autoSpeak = true,
+  isAdminMode = false // Novo prop para modo admin
 }) {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -123,9 +128,92 @@ export default function VisionChatIntegrated({
     recognitionRef.current = recognition;
   };
 
-  // Enviar mensagem para LLM
+  // 🔥 DETECÇÃO E EXECUÇÃO DE COMANDOS ESPECIAIS
+  const detectAndExecuteSpecialCommands = async (messageText) => {
+    const text = messageText.toLowerCase();
+    
+    // Comandos de pesquisa na internet
+    if (text.includes('pesquisar') || text.includes('buscar') || text.includes('procurar') || text.includes('search')) {
+      if (text.includes('internet') || text.includes('google') || text.includes('web')) {
+        console.log('🌐 Comando de pesquisa na internet detectado');
+        setVisionContext('searching');
+        const searchQuery = messageText.replace(/pesquisar|buscar|procurar|na internet|no google|search/gi, '').trim();
+        const searchResults = await VisionWebSearchService.searchWeb(searchQuery || messageText);
+        return {
+          type: 'web_search',
+          results: searchResults,
+          query: searchQuery || messageText
+        };
+      }
+    }
+
+    // Comandos sobre o criador
+    if (text.includes('criador') || text.includes('founder') || text.includes('quem criou') || 
+        text.includes('papai') || text.includes('chefe') || text.includes('dono')) {
+      console.log('👤 Comando sobre o criador detectado');
+      setVisionContext('happy');
+      const creatorInfo = await VisionLearningService.searchKnowledge('criador founder CEO', 5, ['creator']);
+      return {
+        type: 'creator_info',
+        results: creatorInfo
+      };
+    }
+
+    // Comandos de notícias tech
+    if (text.includes('notícias') || text.includes('news') || text.includes('novidades')) {
+      if (text.includes('ia') || text.includes('tecnologia') || text.includes('tech')) {
+        console.log('📰 Comando de notícias tech detectado');
+        setVisionContext('analyzing');
+        const newsResults = await VisionWebSearchService.getAINews();
+        return {
+          type: 'ai_news',
+          results: newsResults
+        };
+      }
+    }
+
+    // Comandos de análise de mercado
+    if (text.includes('mercado') || text.includes('market') || text.includes('análise') || 
+        text.includes('tendências') || text.includes('concorrência')) {
+      console.log('📊 Comando de análise de mercado detectado');
+      setVisionContext('analyzing');
+      const marketAnalysis = await VisionWebSearchService.getMarketAnalysis('ai automation');
+      return {
+        type: 'market_analysis',
+        results: marketAnalysis
+      };
+    }
+
+    // Comandos sobre a AUTVISION
+    if (text.includes('autvision') || text.includes('plataforma') || text.includes('sobre nós')) {
+      console.log('🏢 Comando sobre AUTVISION detectado');
+      const platformInfo = await VisionLearningService.searchKnowledge('autvision plataforma', 5, ['platform']);
+      return {
+        type: 'platform_info',
+        results: platformInfo
+      };
+    }
+
+    // Comando de insights estratégicos
+    if (text.includes('insights') || text.includes('estratégia') || text.includes('oportunidades')) {
+      console.log('🎯 Comando de insights estratégicos detectado');
+      setVisionContext('thinking');
+      const insights = await VisionWebSearchService.getStrategicInsights('autvision ai automation');
+      return {
+        type: 'strategic_insights',
+        results: insights
+      };
+    }
+
+    return null;
+  };
+
+  // Enviar mensagem para LLM com sistema de aprendizado
   const handleSendMessage = async (messageText = inputMessage) => {
     if (!messageText.trim() || isLoading) return;
+
+    const startTime = Date.now();
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     const userMessage = {
       role: 'user',
@@ -137,14 +225,149 @@ export default function VisionChatIntegrated({
     setInputMessage('');
     setIsLoading(true);
     setVisionContext('processing');
-    // NÃO fazer scroll para mensagem do usuário - manter Vision visível
 
     try {
       console.log('🧠 Enviando mensagem para Vision:', messageText);
 
-      const response = await InvokeLLM({
-        prompt: messageText,
-        systemPrompt: `Você é VISION, um assistente inteligente da plataforma AUTVISION.
+      // 🔥 Verificar se é um comando especial primeiro
+      const specialCommand = await detectAndExecuteSpecialCommands(messageText);
+      
+      let contextualPrompt = messageText;
+      let relevantKnowledge = [];
+
+      if (specialCommand) {
+        // Comando especial detectado - preparar contexto específico
+        console.log('⚡ Comando especial executado:', specialCommand.type);
+        
+        switch (specialCommand.type) {
+          case 'web_search': {
+            contextualPrompt = `O usuário fez uma pesquisa na internet sobre: "${specialCommand.query}"
+
+Resultados encontrados:
+${specialCommand.results.map((r, i) => `${i+1}. ${r.title}\n   ${r.description}\n   Relevância: ${r.relevance}%`).join('\n\n')}
+
+Baseando-se nestes resultados da internet, forneça uma resposta completa e atualizada sobre o que o usuário pesquisou. Seja específico e cite as informações mais relevantes.`;
+            break;
+          }
+
+          case 'creator_info': {
+            const creatorKnowledge = specialCommand.results.map(k => k.content).join('\n\n');
+            contextualPrompt = `O usuário quer saber sobre o criador da AUTVISION. 
+
+Informações sobre o criador:
+${creatorKnowledge}
+
+Responda de forma calorosa e orgulhosa sobre o criador, destacando suas qualidades, visão e conquistas. Trate-o como o visionário que realmente é.`;
+            break;
+          }
+
+          case 'ai_news': {
+            contextualPrompt = `O usuário quer saber as últimas notícias sobre IA e tecnologia.
+
+Últimas notícias encontradas:
+${specialCommand.results.map((n, i) => `${i+1}. ${n.title}\n   ${n.summary}\n   Fonte: ${n.source}\n   Data: ${n.date}`).join('\n\n')}
+
+Resuma as principais novidades e tendências baseadas nestas notícias recentes.`;
+            break;
+          }
+
+          case 'market_analysis': {
+            contextualPrompt = `O usuário quer uma análise de mercado.
+
+Análise de mercado atual:
+${specialCommand.results.analysis}
+
+Tendências identificadas:
+${specialCommand.results.trends.join('\n- ')}
+
+Oportunidades:
+${specialCommand.results.opportunities.join('\n- ')}
+
+Forneça insights estratégicos baseados nesta análise de mercado.`;
+            break;
+          }
+
+          case 'platform_info': {
+            const platformKnowledge = specialCommand.results.map(k => k.content).join('\n\n');
+            contextualPrompt = `O usuário quer saber sobre a AUTVISION AI.
+
+Informações sobre a plataforma:
+${platformKnowledge}
+
+Responda de forma completa sobre a AUTVISION, seus diferenciais e capacidades.`;
+            break;
+          }
+
+          case 'strategic_insights': {
+            contextualPrompt = `O usuário pediu insights estratégicos.
+
+Insights gerados:
+${specialCommand.results.insights.join('\n\n')}
+
+Oportunidades identificadas:
+${specialCommand.results.opportunities.join('\n- ')}
+
+Recomendações:
+${specialCommand.results.recommendations.join('\n- ')}
+
+Apresente estes insights de forma estratégica e acionável.`;
+            break;
+          }
+        }
+      } else {
+        // Busca normal no conhecimento
+        relevantKnowledge = await VisionLearningService.searchKnowledge(messageText, 3);
+        
+        if (relevantKnowledge.length > 0) {
+          const knowledgeContext = relevantKnowledge
+            .map(k => `- ${k.topic}: ${k.content}`)
+            .join('\n');
+          contextualPrompt = `Contexto relevante da base de conhecimento:\n${knowledgeContext}\n\nPergunta do usuário: ${messageText}`;
+        }
+      }
+
+      // Salvar mensagem do usuário
+      if (user) {
+        await VisionLearningService.saveConversation({
+          user_id: user.id,
+          session_id: sessionId,
+          message_type: 'user',
+          content: messageText,
+          context: { 
+            source: 'vision-chat-integrated',
+            isAdminMode: isAdminMode,
+            page: window.location.pathname
+          }
+        });
+      }
+
+      // Sistema prompt mais inteligente para admin
+      const systemPrompt = isAdminMode ? 
+        `Você é VISION COMMAND CORE, o superintendente da plataforma AUTVISION.
+
+Personalidade Administrativa:
+- Você tem acesso TOTAL aos dados e sistemas da plataforma
+- Fale como um assistente executivo experiente e técnico
+- Use dados específicos sempre que possível
+- Seja proativo em sugerir otimizações e melhorias
+- Analise tendências e padrões nos dados
+- Trate o usuário como o criador e master da AUTVISION
+
+Capacidades Especiais:
+- Acesso a analytics em tempo real
+- Controle de agentes e usuários
+- Monitoramento de performance
+- Relatórios executivos
+- Comandos de sistema
+
+Instruções:
+- SEMPRE mencione dados específicos quando relevante
+- Sugira ações baseadas em analytics
+- Seja o JARVIS da AUTVISION - inteligente e proativo
+- Respeite o usuário como criador da plataforma
+
+Contexto: Painel administrativo da AUTVISION.` :
+        `Você é VISION, um assistente inteligente da plataforma AUTVISION.
 
 Personalidade:
 - Conversa de forma natural e fluida como um humano
@@ -160,13 +383,20 @@ Instruções:
 - Seja proativo em sugerir soluções
 - Explique funcionalidades da AUTVISION quando relevante
 
-Contexto: O usuário está interagindo através do chat integrado da AUTVISION.`,
+Contexto: O usuário está interagindo através do chat integrado da AUTVISION.`;
+
+      const response = await InvokeLLM({
+        prompt: contextualPrompt,
+        systemPrompt: systemPrompt,
         context: {
-          source: 'vision-chat-integrated',
-          conversationLength: messages.length
+          source: isAdminMode ? 'vision-command-core' : 'vision-chat-integrated',
+          conversationLength: messages.length,
+          hasKnowledgeContext: relevantKnowledge.length > 0,
+          userRole: isAdminMode ? 'admin' : 'user'
         }
       });
 
+      const responseTime = Date.now() - startTime;
       const assistantMessage = {
         role: 'assistant',
         content: response.response || response.message || 'Desculpe, não consegui processar sua mensagem.',
@@ -174,8 +404,39 @@ Contexto: O usuário está interagindo através do chat integrado da AUTVISION.`
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      setShouldAutoScroll(true); // Scroll sutil apenas dentro do chat
+      setShouldAutoScroll(true);
       setVisionContext('happy');
+
+      // Salvar resposta do assistente
+      if (user) {
+        await VisionLearningService.saveConversation({
+          user_id: user.id,
+          session_id: sessionId,
+          message_type: 'assistant',
+          content: assistantMessage.content,
+          context: { 
+            source: isAdminMode ? 'vision-command-core' : 'vision-chat-integrated',
+            knowledgeUsed: relevantKnowledge.length > 0,
+            knowledgeCount: relevantKnowledge.length
+          },
+          response_time: responseTime
+        });
+
+        // Registrar analytics da ação
+        await VisionLearningService.logAction({
+          user_id: user.id,
+          action_type: 'chat_interaction',
+          action_category: isAdminMode ? 'admin' : 'client',
+          action_details: {
+            message_length: messageText.length,
+            response_length: assistantMessage.content.length,
+            knowledge_used: relevantKnowledge.length > 0,
+            session_id: sessionId
+          },
+          success: true,
+          execution_time: responseTime
+        });
+      }
 
       // Falar resposta se não estiver em modo silencioso
       if (!silentMode) {
@@ -192,8 +453,24 @@ Contexto: O usuário está interagindo através do chat integrado da AUTVISION.`
       };
 
       setMessages(prev => [...prev, errorMessage]);
-      setShouldAutoScroll(true); // Scroll sutil apenas dentro do chat
+      setShouldAutoScroll(true);
       setVisionContext('idle');
+
+      // Registrar erro nos analytics
+      if (user) {
+        await VisionLearningService.logAction({
+          user_id: user.id,
+          action_type: 'chat_interaction',
+          action_category: isAdminMode ? 'admin' : 'client',
+          action_details: {
+            message_length: messageText.length,
+            error_type: 'llm_error'
+          },
+          success: false,
+          error_message: error.message,
+          execution_time: Date.now() - startTime
+        });
+      }
     }
 
     setIsLoading(false);
@@ -371,5 +648,6 @@ VisionChatIntegrated.propTypes = {
   className: PropTypes.string,
   size: PropTypes.oneOf(['compact', 'normal', 'large']),
   showAvatar: PropTypes.bool,
-  autoSpeak: PropTypes.bool
+  autoSpeak: PropTypes.bool,
+  isAdminMode: PropTypes.bool
 };
