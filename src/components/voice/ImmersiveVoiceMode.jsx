@@ -1,6 +1,6 @@
 
-// MODO IMERSÃO - NAVEGAÇÃO MOBILE CORRIGIDA + SWIPE
-import { useState, useEffect } from 'react';
+// MODO IMERSÃO - NAVEGAÇÃO MOBILE CORRIGIDA + SWIPE + SISTEMA DE VOZES
+import { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -11,10 +11,16 @@ import {
   VolumeX,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Settings
 } from 'lucide-react';
 import { LLM } from '@/api/entities';
 import ReactiveVisionAgent from '../vision/ReactiveVisionAgent';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useUser } from '@/lib/UserContext';
+import { useVisionContext } from '@/lib/VisionContext';
+import { useToast } from '@/components/ui/use-toast';
+import VoiceSelector from './VoiceSelector';
 
 // LISTA COMPLETA DE AGENTES
 const ORBITAL_AGENTS = [
@@ -29,12 +35,19 @@ const ORBITAL_AGENTS = [
 ];
 
 export default function ImmersiveVoiceMode({ isOpen, onClose }) {
+  const { toast } = useToast();
+  const supabase = useSupabaseClient();
+  const { user } = useUser();
+  const { currentVision } = useVisionContext();
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [connectedAgents, setConnectedAgents] = useState([]);
-  const [speechSynth, setSpeechSynth] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [showVoiceSelector, setShowVoiceSelector] = useState(false);
+  const [userVoiceProfile, setUserVoiceProfile] = useState(null);
+  const [isCustomVoice, setIsCustomVoice] = useState(false);
+  const audioRef = useRef(null);
 
   // TOUCH/SWIPE HANDLING
   const [touchStart, setTouchStart] = useState(null);
@@ -46,24 +59,42 @@ export default function ImmersiveVoiceMode({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      if (user && currentVision) {
+        loadUserVoiceProfile();
+      }
     } else {
       document.body.style.overflow = 'unset';
-      if (speechSynth && speechSynth.speaking) {
-        speechSynth.cancel();
+      if (audioRef.current) {
+        audioRef.current.pause();
         setIsSpeaking(false);
       }
     }
 
     return () => {
       document.body.style.overflow = 'unset';
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
     };
-  }, [isOpen, speechSynth]);
-
-  useEffect(() => {
-    if ('speechSynthesis' in window) {
-      setSpeechSynth(window.speechSynthesis);
+  }, [isOpen, user, currentVision]);
+  
+  // Carregar perfil de voz do usuário
+  const loadUserVoiceProfile = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('voice/profiles/' + user.id, {
+        body: { vision_id: currentVision?.id }
+      });
+      
+      if (error) throw error;
+      
+      setUserVoiceProfile(data);
+      setIsCustomVoice(!!data);
+      
+    } catch (error) {
+      console.error('Erro ao carregar perfil de voz:', error);
+      setIsCustomVoice(false);
     }
-  }, []);
+  };
 
   // NAVEGAÇÃO COM TOUCH/SWIPE
   const handleTouchStart = (e) => {
@@ -90,15 +121,63 @@ export default function ImmersiveVoiceMode({ isOpen, onClose }) {
     }
   };
 
-  const speakText = (text) => {
-    if (speechSynth && voiceEnabled) {
-      if (speechSynth.speaking) {
-        speechSynth.cancel();
+  const speakText = async (text) => {
+    if (!voiceEnabled) return;
+    
+    setIsSpeaking(true);
+    
+    try {
+      // Parar áudio anterior se estiver tocando
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
+      
+      if (isCustomVoice && userVoiceProfile) {
+        // Usar sistema de vozes personalizadas
+        const { data, error } = await supabase.functions.invoke('voice/synthesize', {
+          body: {
+            text,
+            voice_id: userVoiceProfile.voice_id,
+            user_id: user?.id,
+            vision_id: currentVision?.id
+          }
+        });
+        
+        if (error) throw error;
+        
+        // Reproduzir áudio
+        const audio = new Audio(`/api${data.audio_url}`);
+        audioRef.current = audio;
+        
+        audio.onended = () => setIsSpeaking(false);
+        audio.onerror = (event) => {
+          console.error("Custom Voice Error:", event);
+          setIsSpeaking(false);
+          // Fallback para voz do navegador
+          speakWithBrowserVoice(text);
+        };
+        
+        await audio.play();
+        
+      } else {
+        // Usar voz padrão do navegador
+        speakWithBrowserVoice(text);
+      }
+    } catch (error) {
+      console.error('Erro ao sintetizar voz:', error);
+      setIsSpeaking(false);
+      // Fallback para voz do navegador
+      speakWithBrowserVoice(text);
+    }
+  };
+  
+  // Função de fallback para usar a voz do navegador
+  const speakWithBrowserVoice = (text) => {
+    if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'pt-BR';
-      speechSynth.speak(utterance);
-      setIsSpeaking(true);
+      
       utterance.onend = () => setIsSpeaking(false);
       utterance.onerror = (event) => {
         if (event.error !== 'canceled') {
@@ -106,6 +185,15 @@ export default function ImmersiveVoiceMode({ isOpen, onClose }) {
         }
         setIsSpeaking(false);
       };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setIsSpeaking(false);
+      toast({
+        title: "Erro de voz",
+        description: "Seu navegador não suporta síntese de voz.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -257,7 +345,32 @@ export default function ImmersiveVoiceMode({ isOpen, onClose }) {
               <VolumeX className="w-6 h-6 text-white" />
             )}
           </Button>
+          
+          {user && (
+            <Button
+              onClick={() => setShowVoiceSelector(true)}
+              className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 border-2 border-white/20"
+              title="Personalizar voz"
+            >
+              <Settings className="w-6 h-6 text-white" />
+            </Button>
+          )}
         </div>
+        
+        {/* Seletor de Vozes */}
+        {user && (
+          <VoiceSelector 
+            showDialog={showVoiceSelector} 
+            onClose={() => setShowVoiceSelector(false)}
+            onVoiceSelected={(voiceId) => {
+              loadUserVoiceProfile();
+              toast({
+                title: "Voz atualizada",
+                description: "Sua voz personalizada foi atualizada com sucesso!"
+              });
+            }}
+          />
+        )}
       </div>
 
       {/* AGENTES NA PARTE INFERIOR - COM SWIPE */}

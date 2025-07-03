@@ -1,8 +1,8 @@
 // 🤖 ADVANCED AGENT TRAINING - SISTEMA DE TREINAMENTO INTELIGENTE
 // Sistema completo para treinar e otimizar agentes da AUTVISION
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,20 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Brain, 
   Zap, 
-  Target, 
-  TrendingUp, 
   Save, 
-  Play, 
   BarChart3,
-  Settings,
   Lightbulb,
-  CheckCircle,
   AlertTriangle,
   Loader2
 } from 'lucide-react';
@@ -33,7 +27,6 @@ import { useSync } from '@/contexts/SyncContext';
 export default function AdvancedAgentTraining({ agentId, onClose }) {
   const { globalData, syncModule } = useSync();
   const [agent, setAgent] = useState(null);
-  const [trainingConfig, setTrainingConfig] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('personality');
@@ -87,14 +80,18 @@ export default function AdvancedAgentTraining({ agentId, onClose }) {
         // Buscar configuração de treinamento existente
         const existingConfig = await VisionLearningService.getAgentTrainingConfig(agentId);
         if (existingConfig) {
-          setTrainingConfig(existingConfig);
-          
           // Carregar configurações específicas
           if (existingConfig.training_data) {
             const data = existingConfig.training_data;
-            setPersonalityConfig(data.personality || personalityConfig);
-            setSkillsConfig(data.skills || skillsConfig);
-            setKnowledgeConfig(data.knowledge || knowledgeConfig);
+            if (data.personality) {
+              setPersonalityConfig(data.personality);
+            }
+            if (data.skills) {
+              setSkillsConfig(data.skills);
+            }
+            if (data.knowledge) {
+              setKnowledgeConfig(data.knowledge);
+            }
           }
           
           if (existingConfig.performance_metrics) {
@@ -110,7 +107,7 @@ export default function AdvancedAgentTraining({ agentId, onClose }) {
     };
     
     loadAgentData();
-  }, [agentId, syncModule, globalData.agents]);
+  }, [agentId, syncModule, globalData.agents]); // Removido dependências desnecessárias
 
   // Salvar configurações de treinamento
   const handleSaveTraining = async () => {
@@ -128,6 +125,13 @@ export default function AdvancedAgentTraining({ agentId, onClose }) {
       const systemInstructions = generateSystemInstructions();
       const promptTemplate = generatePromptTemplate();
       
+      console.log('🚀 Salvando configuração de treinamento:', {
+        agent_id: agentId,
+        training_data: trainingData,
+        system_instructions: systemInstructions,
+        prompt_template: promptTemplate
+      });
+      
       await VisionLearningService.saveAgentTrainingConfig({
         agent_id: agentId,
         training_type: 'complete',
@@ -144,11 +148,12 @@ export default function AdvancedAgentTraining({ agentId, onClose }) {
         created_by: 'admin' // TODO: usar user ID real
       });
       
+      console.log('✅ Configuração salva com sucesso!');
       alert('✅ Configurações de treinamento salvas com sucesso!');
       
     } catch (error) {
       console.error('❌ Erro ao salvar treinamento:', error);
-      alert('❌ Erro ao salvar configurações. Tente novamente.');
+      alert(`❌ Erro ao salvar configurações: ${error.message || 'Erro desconhecido'}`);
     } finally {
       setIsSaving(false);
     }
@@ -531,3 +536,9 @@ Personalidade: ${personalityConfig.tone}, ${personalityConfig.formality}
     </div>
   );
 }
+
+// PropTypes para validação
+AdvancedAgentTraining.propTypes = {
+  agentId: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired
+};

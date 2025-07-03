@@ -46,9 +46,15 @@ export default function AppRoutes() {
   return (
     <Router>
       <Routes>
-        {/* ROTA INICIAL - REDIRECIONAMENTO INTELIGENTE */}
+        {/* ROTA INICIAL - LANDING PAGE DIRETA */}
         <Route 
           path="/" 
+          element={<LandingPage />}
+        />
+        
+        {/* REDIRECIONAMENTO INTELIGENTE PARA USUÁRIOS LOGADOS */}
+        <Route 
+          path="/dashboard" 
           element={<SmartRedirect />}
         />
         

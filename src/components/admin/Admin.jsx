@@ -28,6 +28,7 @@ import {
   BarChart3 as BarChart3Icon,
   Menu,
   X,
+  Mic,
 } from "lucide-react";
 import { Routine } from "@/api/entities";
 
@@ -47,6 +48,7 @@ import AdvancedRoutinesManagement from "./AdvancedRoutinesManagement";
 import BusinessModuleView from "./BusinessModuleView";
 import MCPMonitoringView from "./MCPMonitoringView";
 import N8NManagementView from "./N8NManagementView";
+import VoiceManagement from "./VoiceManagement";
 import StatCard from "./StatCard";
 import BackendStatusNotification from "./BackendStatusNotification";
 import SyncStatusIndicator from "@/components/sync/SyncStatusIndicator";
@@ -129,6 +131,7 @@ export default function Admin() {
       { id: 'userManagement', label: 'Gerenciar Usuários', icon: UsersIcon },
       { id: 'systemConfig', label: 'Configurações', icon: Settings },
       { id: 'llmManagement', label: 'Gerenciar LLMs', icon: Command },
+      { id: 'voiceManagement', label: 'Gerenciar Vozes', icon: Mic },
       { id: 'financial', label: 'Financeiro', icon: DollarSign },
       { id: 'affiliates', label: 'Afiliados', icon: Share2 },
       { id: 'agents', label: 'Agentes', icon: Bot },
@@ -261,6 +264,8 @@ export default function Admin() {
           return <SystemConfigView />;
         case 'llmManagement':
           return <LLMManagementView llms={data.llms || []} onUpdate={refreshAll} />;
+        case 'voiceManagement':
+          return <VoiceManagement />;
         case 'financial':
           return <FinancialView />;
         case 'affiliates':

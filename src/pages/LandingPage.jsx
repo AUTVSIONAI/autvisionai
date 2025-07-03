@@ -126,6 +126,17 @@ export default function LandingPage() {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300" />
               </motion.a>
             ))}
+            <Link to="/dashboard">
+              <motion.span
+                className="text-gray-300 hover:text-white transition-colors relative group cursor-pointer"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+              >
+                Dashboard
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:w-full transition-all duration-300" />
+              </motion.span>
+            </Link>
           </nav>
           
           <div className="flex space-x-4">
@@ -217,16 +228,18 @@ export default function LandingPage() {
                 </motion.div>
               </Link>
               
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="group cursor-pointer"
-              >
-                <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold">
-                  <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Ver Demo
-                </Button>
-              </motion.div>
+              <Link to="/dashboard">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="group cursor-pointer"
+                >
+                  <Button size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold">
+                    <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                    Acessar Plataforma
+                  </Button>
+                </motion.div>
+              </Link>
             </motion.div>
             
             {/* Stats */}

@@ -43,13 +43,9 @@ export const InvokeLLM = async ({
 
     console.log('🧠 Enviando prompt para LLM:', prompt.substring(0, 100) + '...');
 
-    const response = await axios.post('/llm/invoke', {
+    const response = await axios.post('/llm/ask', {
       prompt,
-      options: {
-        systemPrompt: finalSystemPrompt,
-        temperature: 0.7,
-        maxTokens: 2048
-      },
+      systemPrompt: finalSystemPrompt,
       context: {
         source: 'vision-commander',
         timestamp: new Date().toISOString(),
@@ -62,7 +58,7 @@ export const InvokeLLM = async ({
     });
 
     if (response.data?.success) {
-      const llmResponse = response.data.data.content || response.data.data.response;
+      const llmResponse = response.data.data.response || response.data.data.content;
       
       // Se esperamos JSON, tentar fazer parse
       if (response_json_schema) {

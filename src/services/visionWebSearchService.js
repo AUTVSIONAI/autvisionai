@@ -1,8 +1,6 @@
 // 🌐 VISION WEB SEARCH SERVICE - PESQUISA NA INTERNET
 // Serviço para Vision fazer pesquisas na internet e obter informações em tempo real
 
-import axios from 'axios';
-
 export class VisionWebSearchService {
   
   // 🔍 PESQUISA GERAL NA INTERNET
@@ -54,15 +52,17 @@ export class VisionWebSearchService {
   }
   
   // 🌐 PESQUISA WEB REAL (implementação simplificada)
-  static async performWebSearch(query, options) {
+  static async performWebSearch(query, options = {}) {
     try {
+      console.log('🔍 Realizando busca web:', query, 'com opções:', options);
+      
       // Para produção, usar APIs como:
       // - Google Custom Search API
       // - Bing Search API
       // - SerpAPI
       
-      // Por enquanto, simular resultados inteligentes
-      const mockResults = this.generateIntelligentMockResults(query);
+      // Por enquanto, simular resultados inteligentes baseados nas opções
+      const mockResults = this.generateIntelligentMockResults(query, options);
       
       return mockResults;
       
@@ -100,8 +100,9 @@ export class VisionWebSearchService {
   }
   
   // 🎯 GERAR RESULTADOS INTELIGENTES
-  static generateIntelligentMockResults(query) {
+  static generateIntelligentMockResults(query, options = {}) {
     const queryLower = query.toLowerCase();
+    console.log('🔍 Gerando resultados mock para:', query, 'com opções:', options);
     
     // Detectar tipo de pesquisa e gerar resultados relevantes
     if (queryLower.includes('autvision') || queryLower.includes('nossa plataforma')) {
@@ -264,14 +265,23 @@ export class VisionWebSearchService {
   // 🔮 GERAR INSIGHTS E PREVISÕES
   static async generateInsights(dataSources = ['platform', 'market']) {
     try {
+      console.log('🔮 Gerando insights baseados em:', dataSources);
+      
       let insights = '🔮 **Insights e Previsões Estratégicas**\n\n';
       
-      insights += '📈 **Tendências Identificadas:**\n';
-      insights += '• Usuários preferem agentes especializados vs generalistas\n';
-      insights += '• Integração com ferramentas existentes é crucial\n';
-      insights += '• Demanda por automação cresce 40% mensalmente\n\n';
+      // Personalizar insights baseado nas fontes de dados
+      if (dataSources.includes('platform')) {
+        insights += '📈 **Tendências da Plataforma:**\n';
+        insights += '• Usuários preferem agentes especializados vs generalistas\n';
+        insights += '• Integração com ferramentas existentes é crucial\n';
+      }
       
-      insights += '🎯 **Recomendações Imediatas:**\n';
+      if (dataSources.includes('market')) {
+        insights += '📊 **Análise de Mercado:**\n';
+        insights += '• Demanda por automação cresce 40% mensalmente\n';
+      }
+      
+      insights += '\n🎯 **Recomendações Imediatas:**\n';
       insights += '• Expandir biblioteca de templates de agentes\n';
       insights += '• Desenvolver integrações com CRMs populares\n';
       insights += '• Criar programa de certificação para usuários\n\n';

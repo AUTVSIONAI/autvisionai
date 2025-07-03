@@ -289,7 +289,7 @@ export const SyncProvider = ({ children }) => {
       setGlobalData(fallbackData);
       return fallbackData;
     }
-  }, [emit]);
+  }, [emit, globalData]);
 
   // 🎯 SINCRONIZAÇÃO ESPECÍFICA POR MÓDULO
   const syncModule = useCallback(async (module, userId = null) => {

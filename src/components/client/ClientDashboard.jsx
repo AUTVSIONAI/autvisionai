@@ -1,35 +1,21 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Send, 
   Mic, 
-  MicOff, 
   Volume2, 
   VolumeX,
   Brain,
-  Sparkles,
-  Heart,
   Settings,
-  Power,
   Zap,
-  MessageSquare,
   User,
   Shield,
-  Wifi,
-  WifiOff,
-  Users,
   Activity,
-  Clock,
-  CheckCircle,
-  Circle,
-  X
+  Clock
 } from 'lucide-react';
-import VisionChatIntegrated from '../vision/VisionChatIntegrated';
-import { InvokeLLM } from '@/api/integrations';
+import VisionChatClient from '../vision/VisionChatClient';
 import { useSync } from '@/contexts/SyncContext';
 
 export default function ClientDashboard() {
@@ -37,12 +23,12 @@ export default function ClientDashboard() {
   
   // Estados principais do Vision
   const [isVisionActive, setIsVisionActive] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  const [isListening] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [visionCoreConnected, setVisionCoreConnected] = useState(true);
+  const [visionCoreConnected] = useState(true);
   const [currentExpression, setCurrentExpression] = useState('neutro');
   
-  // Estados removidos - agora usando VisionChatIntegrated
+  // Estados do Vision Chat Client
   
   // Estados dos agentes - sincronizados com admin
   const [activeAgents, setActiveAgents] = useState([]);
@@ -96,14 +82,6 @@ export default function ClientDashboard() {
     }
   }, [soundEnabled]);
 
-  // Função para toggle do microfone
-  const toggleListening = useCallback(() => {
-    setIsListening(prev => !prev);
-    if (soundEnabled) {
-      // Som de microfone
-    }
-  }, [soundEnabled]);
-
   // Função para ativar/desativar agente
   const toggleAgent = useCallback((agentId) => {
     const agent = availableAgents.find(a => a.id === agentId);
@@ -124,9 +102,7 @@ export default function ClientDashboard() {
     setSelectedAgent(selectedAgent?.id === agent.id ? null : agent);
   }, [selectedAgent]);
 
-  // Função removida - agora usando VisionChatIntegrated
-
-  // Função removida - agora usando VisionChatIntegrated
+  // Funções de chat agora gerenciadas pelo VisionChatClient
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-blue-950/10 to-purple-950/10 text-white overflow-hidden">
@@ -236,7 +212,12 @@ export default function ClientDashboard() {
                 className="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] xl:w-[550px] xl:h-[550px] object-contain"
                 style={{
                   background: 'transparent',
-                  filter: 'brightness(1.15) contrast(1.15) saturate(1.15) drop-shadow(0 0 40px rgba(59, 130, 246, 0.4))'
+                  filter: `brightness(1.15) contrast(1.15) saturate(1.15) drop-shadow(0 0 40px rgba(59, 130, 246, 0.4))`,
+                  // Aplica diferentes filtros baseado na expressão
+                  ...(currentExpression === 'sorriso' && { filter: 'brightness(1.3) contrast(1.2) saturate(1.3) hue-rotate(10deg) drop-shadow(0 0 50px rgba(255, 215, 0, 0.5))' }),
+                  ...(currentExpression === 'atento' && { filter: 'brightness(1.2) contrast(1.3) saturate(1.2) drop-shadow(0 0 45px rgba(0, 255, 255, 0.4))' }),
+                  ...(currentExpression === 'pensativo' && { filter: 'brightness(1.1) contrast(1.1) saturate(1.0) drop-shadow(0 0 35px rgba(147, 51, 234, 0.4))' }),
+                  ...(currentExpression === 'confiante' && { filter: 'brightness(1.25) contrast(1.25) saturate(1.25) drop-shadow(0 0 55px rgba(34, 197, 94, 0.5))' })
                 }}
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -316,9 +297,9 @@ export default function ClientDashboard() {
           
         </div>
         
-        {/* Chat Interface - Componente VisionChatIntegrated - Bem separado */}
+        {/* Chat Interface - Componente VisionChatClient - Exclusivo para Clientes */}
         <div className="mb-4 sm:mb-6">
-          <VisionChatIntegrated 
+          <VisionChatClient 
             className="relative z-40"
             size="compact"
             showAvatar={false}

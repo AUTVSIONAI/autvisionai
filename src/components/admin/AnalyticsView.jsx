@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,25 +20,20 @@ import {
   Target,
   Gauge
 } from "lucide-react";
-import { useAdminData } from "../AdminDataContext";
+import { useSafeAdminData } from "./AdminDataContext";
 import PerformanceMetrics from "./analytics/PerformanceMetrics";
 import UserAnalytics from "./analytics/UserAnalytics";
 import RevenueAnalytics from "./analytics/RevenueAnalytics";
 import RealTimeMetrics from "./analytics/RealTimeMetrics";
-import { Analytics } from "@/api/entities";
 
 export default function AnalyticsView() {
-  const { data } = useAdminData();
+  const { data } = useSafeAdminData();
   const [activeTab, setActiveTab] = useState("overview");
   const [timeRange, setTimeRange] = useState("7d");
   const [analyticsData, setAnalyticsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadAnalyticsData();
-  }, [timeRange]);
-
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Simular carregamento de dados analíticos
@@ -49,7 +44,11 @@ export default function AnalyticsView() {
       console.error("Erro ao carregar analytics:", error);
     }
     setIsLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [loadAnalyticsData]);
 
   const generateMockAnalytics = () => {
     // Gerar dados mock para demonstração

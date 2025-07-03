@@ -187,6 +187,10 @@ export const DEFAULT_BADGES = [
 
 // SERVIÇO PRINCIPAL DE GAMIFICAÇÃO
 export class GamificationService {
+  // Cache para evitar loops infinitos na criação de perfil
+  static createUserProfileAttempts = new Map();
+  static MAX_CREATE_ATTEMPTS = 3;
+
   // CARREGAR DADOS DO USUÁRIO
   static async getUserProgress(userId) {
     try {
@@ -202,13 +206,27 @@ export class GamificationService {
         return this.getDefaultUserProgress(userId);
       }
 
-      // Se usuário não existe, criar automaticamente
+      // Se usuário não existe, criar automaticamente (COM PROTEÇÃO ANTI-LOOP)
       if (!user) {
         console.log('👤 Usuário não encontrado, criando perfil automaticamente...');
+        
+        // Verificar se já tentou criar este usuário muitas vezes
+        const attemptCount = this.createUserProfileAttempts.get(userId) || 0;
+        if (attemptCount >= this.MAX_CREATE_ATTEMPTS) {
+          console.warn(`⚠️ Limite de tentativas atingido para usuário ${userId}, usando perfil mock`);
+          return this.getDefaultUserProgress(userId);
+        }
+        
+        // Incrementar contador de tentativas
+        this.createUserProfileAttempts.set(userId, attemptCount + 1);
+        
         const newUser = await this.createUserProfile(userId);
         if (newUser) {
+          // Limpar contador se teve sucesso
+          this.createUserProfileAttempts.delete(userId);
           return this.formatUserProgress(newUser);
         } else {
+          console.warn(`⚠️ Falha ao criar perfil para usuário ${userId}, usando perfil padrão`);
           return this.getDefaultUserProgress(userId);
         }
       }
@@ -262,6 +280,15 @@ export class GamificationService {
 
   // CRIAR PERFIL DE USUÁRIO AUTOMATICAMENTE
   static async createUserProfile(userId) {
+    // PROTEÇÃO ANTI-LOOP: Verificar se já está sendo criado
+    if (this.createUserProfileAttempts.has(userId + '_creating')) {
+      console.warn('⚠️ Perfil já sendo criado para este usuário, evitando duplicação');
+      return null;
+    }
+    
+    // Marcar como em criação
+    this.createUserProfileAttempts.set(userId + '_creating', true);
+    
     try {
       console.log('🔄 Criando perfil para usuário:', userId);
 
@@ -284,22 +311,38 @@ export class GamificationService {
         userFullName = 'Usuário Vision';
       }
 
-      // Perfil com estrutura otimizada e resiliente (COLUNAS CORRETAS)
+      // Verificar tentativas anteriores para evitar loops
+      if (this.createUserProfileAttempts.has(userId)) {
+        const attemptInfo = this.createUserProfileAttempts.get(userId);
+        if (attemptInfo.attempts >= this.MAX_CREATE_ATTEMPTS) {
+          console.warn(`⚠️ Múltiplas tentativas de criação para o usuário ${userId}. Abortando para evitar loop.`);
+          return null;
+        }
+        attemptInfo.attempts++;
+      } else {
+        this.createUserProfileAttempts.set(userId, { attempts: 1 });
+      }
+
+      // Perfil com estrutura correta baseada na documentação oficial
       const defaultProfile = {
         id: userId,
         email: userEmail,
-        display_name: userFullName,  // ✅ display_name (não full_name)
+        display_name: userFullName,   // ✅ display_name correto
+        full_name: userFullName,      // ✅ full_name também existe
         role: 'user',
-        plan_id: null,               // ✅ plan_id pode ser null
-        tokens: 100,                 // Tokens iniciais de boas-vindas
+        plan_id: null,                // ✅ plan_id pode ser null
+        tokens: 100,                  // Tokens iniciais de boas-vindas
         xp: 0,
         level: 1,
-        completed_mission_ids: [],
-        earned_badge_ids: [],
-        streak: 0,                   // ✅ streak (não daily_login_streak)
-        total_interactions: 0,       // ✅ total_interactions correto
-        last_login: new Date().toISOString(),    // ✅ last_login correto
-        created_date: new Date().toISOString()   // ✅ created_date (não created_at)
+        completed_mission_ids: [],    // ✅ TEXT[] correto
+        earned_badge_ids: [],         // ✅ TEXT[] correto  
+        streak: 0,                    // ✅ streak correto
+        daily_login_streak: 0,        // ✅ daily_login_streak também existe
+        total_interactions: 0,        // ✅ total_interactions correto
+        last_login: new Date().toISOString(),     // ✅ TIMESTAMP WITH TIME ZONE
+        created_date: new Date().toISOString(),   // ✅ created_date existe
+        created_at: new Date().toISOString(),     // ✅ created_at também existe
+        updated_at: new Date().toISOString()      // ✅ updated_at existe
       };
 
       console.log('📝 Inserindo perfil com estrutura otimizada:', defaultProfile);
@@ -314,13 +357,13 @@ export class GamificationService {
       if (error) {
         console.error('❌ Erro ao criar perfil completo:', error);
         
-        // Segunda tentativa: perfil ultra-mínimo
+        // Segunda tentativa: perfil mínimo com estrutura oficial
         console.log('🔄 Tentando criar perfil mínimo...');
         const minimalProfile = {
           id: userId,
-          email: userEmail || '',
-          full_name: userFullName || 'Usuário Vision',
-          created_at: new Date().toISOString()
+          email: userEmail || `user${userId.substring(0,8)}@autvision.ai`,
+          display_name: userFullName || 'Usuário Vision',
+          full_name: userFullName || 'Usuário Vision'
         };
         
         const { data: minUser, error: minError } = await supabase
@@ -342,7 +385,28 @@ export class GamificationService {
             
           if (idError) {
             console.error('❌ Falha total ao criar perfil:', idError);
-            return null;
+            console.warn('⚠️ Usando perfil mock para não travar o sistema');
+            // FALLBACK: retorna perfil mock para não travar
+            return {
+              id: userId,
+              email: userEmail || `user${userId.substring(0,8)}@autvision.ai`,
+              display_name: userFullName || 'Usuário Vision',
+              full_name: userFullName || 'Usuário Vision',
+              role: 'user',
+              plan_id: 1,
+              tokens: 1000,
+              xp: 0,
+              level: 1,
+              completed_mission_ids: [],
+              earned_badge_ids: [],
+              streak: 0,
+              daily_login_streak: 0,
+              total_interactions: 0,
+              last_login: new Date().toISOString(),
+              created_date: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
           }
           
           console.log('✅ Perfil ID-only criado:', idOnlyUser);
@@ -366,9 +430,18 @@ export class GamificationService {
     } catch (error) {
       console.error('❌ Erro inesperado ao criar perfil:', error);
       
+      // Verificar se é erro 403 (RLS bloqueando) e falhar rápido
+      if (error?.code === '42501' || error?.message?.includes('403') || error?.status === 403) {
+        console.warn('⚠️ Erro 403 detectado - RLS bloqueando acesso. Usando perfil mock.');
+        return null; // Falha rápida para erro de permissão
+      }
+      
       // Em caso de erro total, retornar perfil em memória
       console.log('🔄 Retornando perfil em memória como fallback...');
       return this.getDefaultUserProgress(userId);
+    } finally {
+      // SEMPRE limpar flag de criação
+      this.createUserProfileAttempts.delete(userId + '_creating');
     }
   }
 

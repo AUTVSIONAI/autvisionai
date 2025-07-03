@@ -113,7 +113,11 @@ const ToastItem = ({ toast, onRemove }) => {
 };
 
 // Exports para compatibilidade com toaster.jsx
-export const Toast = ({ children, ...props }) => <div {...props}>{children}</div>;
+export const Toast = ({ children, onOpenChange, ...props }) => {
+  // Remove onOpenChange from props to avoid React warning
+  const { onOpenChange: _, ...restProps } = props;
+  return <div {...restProps}>{children}</div>;
+};
 export const ToastClose = (props) => <button {...props} />;
 export const ToastDescription = ({ children }) => <div>{children}</div>;
 export const ToastTitle = ({ children }) => <div>{children}</div>;

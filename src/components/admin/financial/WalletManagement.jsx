@@ -6,12 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Wallet, Plus, Minus, TrendingUp, DollarSign, Users, RefreshCw, Send } from 'lucide-react';
-import { useAdminData } from '../../AdminDataContext';
+import { useSafeAdminData } from '../AdminDataContext';
 import { Wallet as WalletEntity } from '@/api/entities';
 import { Transaction } from '@/api/entities';
 
 export default function WalletManagement() {
-  const { data } = useAdminData();
+  const { data } = useSafeAdminData();
   const { users = [] } = data;
   
   const [wallets, setWallets] = useState([]);

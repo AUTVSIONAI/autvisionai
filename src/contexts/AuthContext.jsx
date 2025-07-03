@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   const [profile, setProfile] = useState(null)
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(false) // Começar com false
-  const [initializing, setInitializing] = useState(false) // TEMPORARIAMENTE DESABILITADO PARA TESTE
+  const [initializing, setInitializing] = useState(true)
   const [error, setError] = useState(null)
 
   // 🔥 Inicializar auth na primeira carga
@@ -94,12 +94,13 @@ export const AuthProvider = ({ children }) => {
               console.log('✅ Perfil final definido:', userProfile)
               setProfile(userProfile)
 
-              // NOVO: Garantir perfil de gamificação existe no login inicial
-              GamificationService.getUserProgress(session.user.id).then(gamificationProfile => {
-                console.log('🎮 Perfil de gamificação verificado/criado no login inicial:', gamificationProfile)
-              }).catch(error => {
-                console.warn('⚠️ Erro ao verificar perfil de gamificação inicial (não crítico):', error)
-              })
+              // Reativar carregamento de progresso de gamificação
+              try {
+                const gamificationProfile = await GamificationService.getUserProgress(session.user.id)
+                console.log('🎮 Perfil de gamificação carregado:', gamificationProfile)
+              } catch (error) {
+                console.warn('⚠️ Erro ao carregar perfil de gamificação (não crítico):', error)
+              }
 
             } catch (error) {
               console.error('❌ AuthContext: Erro ao buscar perfil:', error)
@@ -186,12 +187,16 @@ export const AuthProvider = ({ children }) => {
                     console.log('✅ onAuthStateChange: Mantendo perfil padrão (não encontrado no banco)')
                   }
 
-                  // NOVO: Garantir perfil de gamificação existe
-                  GamificationService.getUserProgress(session.user.id).then(gamificationProfile => {
-                    console.log('🎮 Perfil de gamificação verificado/criado:', gamificationProfile)
-                  }).catch(error => {
-                    console.warn('⚠️ Erro ao verificar perfil de gamificação (não crítico):', error)
-                  })
+                  // Reativar carregamento de progresso de gamificação
+                  try {
+                    GamificationService.getUserProgress(session.user.id).then(gamificationProfile => {
+                      console.log('🎮 Perfil de gamificação verificado/criado:', gamificationProfile)
+                    }).catch(error => {
+                      console.warn('⚠️ Erro ao verificar perfil de gamificação (não crítico):', error)
+                    })
+                  } catch (error) {
+                    console.warn('⚠️ Erro ao inicializar gamificação:', error)
+                  }
 
                 }).catch(error => {
                   console.warn('⚠️ onAuthStateChange: Erro ao buscar perfil, mantendo padrão:', error)
@@ -201,12 +206,16 @@ export const AuthProvider = ({ children }) => {
                     console.log('🚫 onAuthStateChange: Erro crítico detectado, não tentando novamente')
                   }
 
-                  // Ainda assim, tentar criar perfil de gamificação
-                  GamificationService.getUserProgress(session.user.id).then(gamificationProfile => {
-                    console.log('🎮 Perfil de gamificação criado após erro de perfil principal:', gamificationProfile)
-                  }).catch(gamError => {
-                    console.warn('⚠️ Erro ao criar perfil de gamificação (não crítico):', gamError)
-                  })
+                  // Tentar gamificação mesmo com erro no perfil principal
+                  try {
+                    GamificationService.getUserProgress(session.user.id).then(gamificationProfile => {
+                      console.log('🎮 Perfil de gamificação criado após erro de perfil principal:', gamificationProfile)
+                    }).catch(gamError => {
+                      console.warn('⚠️ Erro na gamificação após erro de perfil (não crítico):', gamError)
+                    })
+                  } catch (error) {
+                    console.warn('⚠️ Erro ao inicializar gamificação após erro de perfil:', error)
+                  }
                 })
               }
             }, 500) // Aumentar debounce para 500ms para dar tempo da sessão se estabelecer

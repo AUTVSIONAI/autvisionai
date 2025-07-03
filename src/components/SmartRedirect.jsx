@@ -15,9 +15,9 @@ export default function SmartRedirect() {
     // Aguardar inicialização
     if (initializing) return;
 
-    // Se não autenticado, ir para login
+    // Se não autenticado, ir para landing page
     if (!isAuthenticated) {
-      navigate('/login');
+      navigate('/LandingPage');
       return;
     }
 

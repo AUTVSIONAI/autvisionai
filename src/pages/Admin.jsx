@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LogOut, Crown } from "lucide-react";
 import { ToastProvider } from "@/components/ui/toast";
 import SystemStatus from "@/components/system/SystemStatus";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 import DashboardCharts from "../components/admin/DashboardCharts";
 import UserManagementView from "../components/admin/UserManagementView";
@@ -23,6 +24,7 @@ import MCPMonitoringView from "../components/admin/MCPMonitoringView";
 import N8NManagementView from "../components/admin/N8NManagementView";
 import AgentsManagement from "../components/admin/AgentsManagement";
 import VisionCommandCore from "../components/admin/VisionCommandCore";
+// import VisionManagement from "../components/admin/VisionManagement"; // REMOVIDO - VisionCommandCore já faz isso melhor!
 import { AdminDataProvider } from "../components/admin/AdminDataContext";
 import LLMManagementView from "../components/admin/LLMManagementView";
 import AffiliatesManagement from "../components/admin/AffiliatesManagement";
@@ -154,6 +156,7 @@ function AdminContent() {
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'userManagement', label: 'Usuários', icon: UsersIcon },
+    // { id: 'visions', label: 'Visions', icon: Eye }, // REMOVIDO - VisionCommandCore já faz isso!
     { id: 'systemConfig', label: 'Sistema', icon: Settings },
     { id: 'llmManagement', label: 'LLM Config', icon: Brain },
     { id: 'financial', label: 'Financeiro', icon: DollarSign },
@@ -195,11 +198,7 @@ function AdminContent() {
   const renderContent = () => {
     switch (activeView) {
       case 'jarvis':
-        return (
-            <AdminDataProvider>
-              <VisionCommandCore adminData={data} onVoiceCommand={handleJarvisCommand} />
-            </AdminDataProvider>
-          );
+        return <VisionCommandCore adminData={data} onVoiceCommand={handleJarvisCommand} />;
 
       case 'dashboard':
         return (
@@ -245,6 +244,8 @@ function AdminContent() {
         return <AnalyticsView />;
       case 'userManagement':
         return <UserManagementView />;
+      // case 'visions': REMOVIDO - VisionCommandCore já faz isso melhor!
+      //   return <VisionManagement />;
       case 'systemConfig':
         return <SystemConfigView />;
       case 'llmManagement':
@@ -438,8 +439,10 @@ function AdminContent() {
 // Componente wrapper com contexto
 export default function Admin() {
   return (
-    <AdminDataProvider>
-      <AdminContent />
-    </AdminDataProvider>
+    <ErrorBoundary>
+      <AdminDataProvider>
+        <AdminContent />
+      </AdminDataProvider>
+    </ErrorBoundary>
   );
 }

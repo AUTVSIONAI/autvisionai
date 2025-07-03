@@ -6,7 +6,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import GamificationService, { XP_SYSTEM } from '@/services/gamificationService';
+import GamificationService from '@/services/gamificationService'; // REATIVADO!
 import { useAuth } from './AuthContext';
 
 const GamificationContext = createContext();
@@ -44,7 +44,12 @@ export const GamificationProvider = ({ children }) => {
     const loadUserData = async () => {
       if (user?.id) {
         try {
+          // Reativar carregamento de dados de gamificação
+          console.log('🎮 GamificationContext: Carregando dados do usuário...', user.id);
+          
           const progress = await GamificationService.getUserProgress(user.id);
+          console.log('🎮 GamificationContext: Dados carregados:', progress);
+          
           if (progress) {
             setUserStats({
               level: progress.currentLevel?.level || 1,
@@ -110,17 +115,6 @@ export const GamificationProvider = ({ children }) => {
       unlocked: false
     }
   ]);
-
-  // Calcular nível baseado no XP total
-  const calculateLevel = useCallback((totalXp) => {
-    return Math.floor(totalXp / 100) + 1;
-  }, []);
-
-  // Calcular XP necessário para próximo nível
-  const calculateXpToNextLevel = useCallback((totalXp) => {
-    const currentLevelXp = totalXp % 100;
-    return 100 - currentLevelXp;
-  }, []);
 
   // Adicionar XP usando o serviço consolidado
   const addXp = useCallback(async (amount, tokens = 0, reason = '') => {
