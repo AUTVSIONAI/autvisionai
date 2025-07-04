@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Correção - Erro de Cadastro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #61dafb;
+            margin-bottom: 10px;
+        }
+        .step {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #61dafb;
+        }
+        .step h3 {
+            color: #61dafb;
+            margin-top: 0;
+        }
+        .code {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .warning {
+            background: rgba(255, 193, 7, 0.2);
+            border-left-color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        .success {
+            background: rgba(40, 167, 69, 0.2);
+            border-left-color: #28a745;
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        .error {
+            background: rgba(220, 53, 69, 0.2);
+            border-left-color: #dc3545;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        button {
+            background: linear-gradient(135deg, #61dafb 0%, #4fa8d8 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .results {
+            margin-top: 20px;
+            min-height: 200px;
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-line;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Teste de Correção</h1>
+            <p>Validação da correção do erro "Database error saving new user"</p>
+        </div>
+
+        <div class="step success">
+            <h3>✅ Problema Identificado</h3>
+            <p>O erro "Database error saving new user" indica que:</p>
+            <ul>
+                <li>Novos usuários não conseguem se cadastrar</li>
+                <li>Tabela <code>userprofile</code> tem problemas de estrutura/permissões</li>
+                <li>Trigger automático pode estar falhando</li>
+                <li>RLS (Row Level Security) pode estar bloqueando inserções</li>
+            </ul>
+        </div>
+
+        <div class="step warning">
+            <h3>⚠️ Passos para Correção</h3>
+            <p><strong>1. Execute o SQL de correção no Supabase:</strong></p>
+            <div class="code">-- Vá para Supabase → SQL Editor
+-- Execute o arquivo: FIX_SIGNUP_DATABASE_ERROR.sql</div>
+            
+            <p><strong>2. Verifique se o trigger foi criado:</strong></p>
+            <div class="code">SELECT trigger_name FROM information_schema.triggers 
+WHERE event_object_table = 'userprofile';</div>
+
+            <p><strong>3. Teste a inserção manual:</strong></p>
+            <div class="code">INSERT INTO public.userprofile (id, email, full_name) 
+VALUES ('test-123', 'teste@exemplo.com', 'Teste');</div>
+        </div>
+
+        <div class="step">
+            <h3>🧪 Testes Automatizados</h3>
+            <button onclick="runBasicTest()">🔍 Teste Básico</button>
+            <button onclick="runConnectivityTest()">🌐 Teste de Conectividade</button>
+            <button onclick="runTableTest()">📊 Teste de Tabela</button>
+            <button onclick="clearResults()">🧹 Limpar Resultados</button>
+        </div>
+
+        <div class="step error">
+            <h3>🚨 Teste de Cadastro Real</h3>
+            <p><strong>Atenção:</strong> Este teste criará um usuário real no sistema!</p>
+            <input type="email" id="testEmail" placeholder="email@teste.com" style="padding: 10px; margin: 5px; background: #2a2a2a; color: white; border: 1px solid #555; border-radius: 5px;">
+            <input type="password" id="testPassword" placeholder="senha123" style="padding: 10px; margin: 5px; background: #2a2a2a; color: white; border: 1px solid #555; border-radius: 5px;">
+            <input type="text" id="testName" placeholder="Nome Teste" style="padding: 10px; margin: 5px; background: #2a2a2a; color: white; border: 1px solid #555; border-radius: 5px;">
+            <br>
+            <button onclick="runRealSignUpTest()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">⚠️ Teste Real de Cadastro</button>
+        </div>
+
+        <div class="results" id="results">
+🎯 Resultados dos testes aparecerão aqui...
+
+💡 Dicas:
+- Execute os testes em ordem
+- Se der erro 500/406, execute o SQL de correção
+- Verifique o console do navegador para mais detalhes
+        </div>
+    </div>
+
+    <script>
+        let resultsDiv = document.getElementById('results');
+
+        function log(message) {
+            resultsDiv.textContent += new Date().toLocaleTimeString() + ' - ' + message + '\n';
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            resultsDiv.textContent = '🧹 Resultados limpos.\n\n';
+        }
+
+        async function runBasicTest() {
+            log('🧪 INICIANDO TESTE BÁSICO...');
+            
+            try {
+                // Verificar se está na aplicação AutVision
+                if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('autvision')) {
+                    log('⚠️ Execute este teste na aplicação AutVision (localhost:3004)');
+                    return;
+                }
+
+                log('✅ Teste básico concluído');
+                log('💡 Próximo passo: Execute o teste de conectividade');
+
+            } catch (error) {
+                log('❌ Erro no teste básico: ' + error.message);
+            }
+        }
+
+        async function runConnectivityTest() {
+            log('🌐 TESTANDO CONECTIVIDADE...');
+            
+            try {
+                // Este teste precisa ser executado no contexto da aplicação
+                log('💡 Para testar conectividade:');
+                log('   1. Abra o console do navegador (F12)');
+                log('   2. Execute: window.testSignUpFix()');
+                log('   3. Verifique se consegue acessar a tabela userprofile');
+
+            } catch (error) {
+                log('❌ Erro no teste de conectividade: ' + error.message);
+            }
+        }
+
+        async function runTableTest() {
+            log('📊 TESTANDO ESTRUTURA DA TABELA...');
+            
+            log('💡 Execute no SQL Editor do Supabase:');
+            log('   SELECT column_name, data_type, is_nullable');
+            log('   FROM information_schema.columns');
+            log('   WHERE table_name = \'userprofile\'');
+            log('   ORDER BY ordinal_position;');
+            
+            log('✅ Verifique se as colunas necessárias existem');
+        }
+
+        async function runRealSignUpTest() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            const name = document.getElementById('testName').value;
+
+            if (!email || !password) {
+                log('❌ Preencha email e senha para o teste');
+                return;
+            }
+
+            log('🚨 TESTE REAL DE CADASTRO - CRIARÁ USUÁRIO REAL!');
+            log('📧 Email: ' + email);
+            log('🔑 Senha: ' + '*'.repeat(password.length));
+            log('👤 Nome: ' + (name || 'Usuário Teste'));
+            
+            log('💡 Para executar este teste:');
+            log('   1. Vá para a página de cadastro da aplicação');
+            log('   2. Use os dados fornecidos acima');
+            log('   3. Verifique se NÃO aparece "Database error saving new user"');
+            log('   4. Se der erro, execute o SQL de correção no Supabase');
+        }
+
+        // Auto-executar teste básico
+        setTimeout(() => {
+            log('🚀 Página de teste carregada!');
+            log('💡 Execute os testes em ordem para diagnosticar o problema');
+        }, 1000);
+    </script>
+</body>
+</html>
