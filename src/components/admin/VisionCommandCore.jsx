@@ -272,7 +272,7 @@ export default function VisionCommandCore() {
       setLoading(true);
       
       // API URL com porta correta (3001)
-      const apiUrl = 'http://localhost:3001';
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
       const url = `${apiUrl}/admin/logs`;
       
       console.log('🌐 [LOGS] Tentando API:', url);
@@ -361,7 +361,7 @@ export default function VisionCommandCore() {
       setLoading(true);
       
       // API URL com porta correta (3001)
-      const apiUrl = 'http://localhost:3001';
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
       const url = `${apiUrl}/admin/monitoring`;
       
       console.log('🌐 [MONITORING] Tentando API:', url);
@@ -451,7 +451,7 @@ export default function VisionCommandCore() {
       setLoading(true);
       
       // API URL com porta correta (3001)
-      const apiUrl = 'http://localhost:3001';
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
       const url = `${apiUrl}/admin/users`;
       
       console.log('🌐 [DASHBOARD] Tentando API:', url);
