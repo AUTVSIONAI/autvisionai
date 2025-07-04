@@ -24,7 +24,7 @@ const getCacheKey = (config) => {
 
 // Criar instância do Axios com configuração base
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://autvisionai-backend-five.vercel.app',
+  baseURL: (import.meta.env.VITE_API_BASE_URL || 'https://autvisionai-backend-five.vercel.app').replace(/\/$/, ''),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
@@ -35,8 +35,9 @@ console.log('🚀 API baseURL final:', api.defaults.baseURL);
 
 // Interceptor para adicionar API key, token de autenticação E cache
 api.interceptors.request.use(async config => {
-  // Debug: Log da requisição
-  console.log('🌐 Fazendo requisição para:', config.baseURL + config.url);
+  // Debug: Log da requisição (corrigindo barras duplas)
+  const fullUrl = (config.baseURL + config.url).replace(/([^:]\/)\/+/g, '$1');
+  console.log('🌐 Fazendo requisição para:', fullUrl);
   
   // 🔄 VERIFICAR CACHE PRIMEIRO
   if (isCacheable(config)) {
